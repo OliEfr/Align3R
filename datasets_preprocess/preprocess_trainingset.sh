@@ -1,0 +1,9 @@
+#!/bin/bash
+export PYTHONPATH=$PYTHONPATH:Align3R
+python datasets_preprocess/preprocess_PointOdyssey.py
+python datasets_preprocess/preprocess_Spring.py
+python datasets_preprocess/preprocess_Tartanair.py
+python datasets_preprocess/preprocess_vikitti.py
+python datasets_preprocess/preprocess_Flythings3D.py
+python datasets_preprocess/preprocess_Driving.py
+python datasets_preprocess/preprocess_Monkaa.py
