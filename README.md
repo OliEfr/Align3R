@@ -26,7 +26,7 @@ Arxiv, 2024.
 ### 🛠️ Installation
 1. Clone this repo:
 ```bash
-git clone 
+git clone git@github.com:jiah-cloud/Align3R.git
 ```
 2. Install dependencies:
 ```bash
