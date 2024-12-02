@@ -1,5 +1,4 @@
 #!/bin/bash
 export PYTHONPATH=$PYTHONPATH:Align3R
-# CUDA_VISIBLE_DEVICES='5' python tool/pose_test.py --dust3r_dynamic_model_path="/home/lipeng/ljh_code/Video_Depth_CVPR2025-main/dust3r_train/checkpoints/dust3r_512dpt_finedynamic_15_2/checkpoint-best.pth" --output_postfix="results/bonn_pose_ours_depthpro" --dataset_name=bonn --depth_prior_name=depthpro --start_frame=0 --interval_frame=30 --mode=eval_pose --scene_graph_type=swin-5-noncyclic
 
-CUDA_VISIBLE_DEVICES='7' python tool/pose_test.py --dust3r_dynamic_model_path="/home/lipeng/ljh_code/Video_Depth_CVPR2025-main/dust3r_train/checkpoints/dust3r_512dpt_finedynamic_depthanything_1/checkpoint-best.pth" --output_postfix="results/sintel_pose_ours_depthanything" --dataset_name=sintel --depth_prior_name=depthanything --start_frame=0 --interval_frame=3000 --mode=eval_pose --scene_graph_type=swin-5-noncyclic
+CUDA_VISIBLE_DEVICES='0' python tool/pose_test.py --dust3r_dynamic_model_path="align3r_depthpro.pth" --output_postfix="results/sintel_pose_ours_depthpro" --dataset_name=sintel --depth_prior_name=depthpro --start_frame=0 --interval_frame=3000 --mode=eval_pose --scene_graph_type=swinstride-5-noncyclic
