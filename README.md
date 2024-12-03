@@ -3,7 +3,7 @@
 
 ![Version](https://img.shields.io/badge/version-1.0.1-blue) &nbsp;
  <a href='https://arxiv.org/abs/2409.02095'><img src='https://img.shields.io/badge/arXiv-2409.02095-b31b1b.svg'></a> &nbsp;
- <a href='https://align3r.github.io/'><img src='https://img.shields.io/badge/Project-Page-Green'></a> &nbsp;
+ <a href='https://jiah-cloud.github.io/Align3R.github.io/'><img src='https://img.shields.io/badge/Project-Page-Green'></a> &nbsp;
 
 [**Align3R: Aligned Monocular Depth Estimation for Dynamic Videos**]()
 [*Jiahao Lu*\*](https://github.com/jiah-cloud),
@@ -19,7 +19,7 @@
 Arxiv, 2024. 
 
 **Align3R** estimates temporally consistent video depth, dynamic point clouds, and camera poses from monocular videos.
-[![Watch the video](assets/teaser_00.jpg)](https://align3r.github.io/static/video/Align3R_video.mp4)
+[![Watch the video](assets/teaser_00.jpg)](https://jiah-cloud.github.io/Align3R.github.io/static/video/converted/Align3R_video.mp4)
 
 ## 🚀 Quick Start
 
