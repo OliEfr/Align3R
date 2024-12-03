@@ -147,6 +147,11 @@ Our folder structure is as follows:
     └── tum
 
 ```
+To generate monocular depth maps, you should use the following script:
+```shell
+cd third_party/ml-depth-pro
+bash infer.sh
+```
 ### 🌟 Training
 Please download the pretrained DUSt3R [weight](https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth) before training.
 ```bash
