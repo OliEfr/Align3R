@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/0ec4b317-0841-4788-b380-ee6475494e3a)## ___***Align3R: Aligned Monocular Depth Estimation for Dynamic Videos***___
+## ___***Align3R: Aligned Monocular Depth Estimation for Dynamic Videos***___
 
 
 ![Version](https://img.shields.io/badge/version-1.0.1-blue) &nbsp;
