@@ -1,4 +1,4 @@
-## ___***Align3R: Aligned Monocular Depth Estimation for Dynamic Videos***___
+![image](https://github.com/user-attachments/assets/0ec4b317-0841-4788-b380-ee6475494e3a)## ___***Align3R: Aligned Monocular Depth Estimation for Dynamic Videos***___
 
 
 ![Version](https://img.shields.io/badge/version-1.0.1-blue) &nbsp;
@@ -7,7 +7,7 @@
 
 [**Align3R: Aligned Monocular Depth Estimation for Dynamic Videos**]()
 [*Jiahao Lu*\*](https://github.com/jiah-cloud),
-[*Tianyu Huang*\*](),
+[*Tianyu Huang*\*](https://scholar.google.com/citations?view_op=list_works&hl=en&user=nhbSplwAAAAJ),
 [*Peng Li*](https://scholar.google.com/citations?user=8eTLCkwAAAAJ&hl=zh-CN),
 [*Zhiyang Dou*](https://frank-zy-dou.github.io/),
 [*Cheng Lin*](https://clinplayer.github.io/),
