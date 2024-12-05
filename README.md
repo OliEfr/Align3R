@@ -251,4 +251,4 @@ If you find our work useful, please cite:
 ```
 
 ### 🤝 Acknowledgements
-Our code is based on [DUSt3R](https://github.com/naver/dust3r), [MonST3R](https://github.com/Junyi42/monst3r), [Depth Pro](https://github.com/apple/ml-depth-pro) and [Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2). Our visualization code can acquired from [MonST3R](https://github.com/Junyi42/viser.git). We thank the authors for their excellent work!
+Our code is based on [DUSt3R](https://github.com/naver/dust3r), [MonST3R](https://github.com/Junyi42/monst3r), [Depth Pro](https://github.com/apple/ml-depth-pro), [Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2) and [ControlNet](https://github.com/lllyasviel/ControlNet). Our visualization code can acquired from [MonST3R](https://github.com/Junyi42/viser.git). We thank the authors for their excellent work!
