@@ -4,6 +4,11 @@
 ![Version](https://img.shields.io/badge/version-1.0.1-blue) &nbsp;
  <a href='https://arxiv.org/abs/2409.02095'><img src='https://img.shields.io/badge/arXiv-2409.02095-b31b1b.svg'></a> &nbsp;
  <a href='https://igl-hkust.github.io/Align3R.github.io/'><img src='https://img.shields.io/badge/Project-Page-Green'></a> &nbsp;
+ [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
+
+[cc-by-nc-sa]: http://creativecommons.org/licenses/by-nc-sa/4.0/
+[cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
+[cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg
 
 [**Align3R: Aligned Monocular Depth Estimation for Dynamic Videos**]()
 [*Jiahao Lu*\*](https://github.com/jiah-cloud),
