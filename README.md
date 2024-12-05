@@ -2,7 +2,7 @@
 
 
 ![Version](https://img.shields.io/badge/version-1.0.1-blue) &nbsp;
- <a href='https://arxiv.org/abs/2409.02095'><img src='https://img.shields.io/badge/arXiv-2409.02095-b31b1b.svg'></a> &nbsp;
+ <a href='https://arxiv.org/abs/2412.03079'><img src='https://img.shields.io/badge/arXiv-2412.03079-b31b1b.svg'></a> &nbsp;
  <a href='https://igl-hkust.github.io/Align3R.github.io/'><img src='https://img.shields.io/badge/Project-Page-Green'></a> &nbsp;
  [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
 
@@ -252,8 +252,13 @@ python viser/visualizer_monst3r.py --data path/dataset/video --init_conf --fg_co
 If you find our work useful, please cite:
 
 ```bibtex
-
+@article{lu2024align3r,
+  title={Align3R: Aligned Monocular Depth Estimation for Dynamic Videos},Jiahao Lu, Tianyu Huang, Peng Li, Zhiyang Dou, Cheng Lin, Zhiming Cui, Zhen Dong, Sai-Kit Yeung, Wenping Wang, Yuan Liu
+  author={Lu, Jiahao and Huang, Tianyu and Li, Peng and Dou, Zhiyang and Lin, Cheng and Cui, Zhiming and Dong, Zhen and Yeung, Sai-Kit and Wang, Wenping and Liu,Yuan},
+  journal={arXiv preprint arXiv:2412.03079},
+  year={2024}
+}
 ```
 
 ### 🤝 Acknowledgements
-Our code is based on [DUSt3R](https://github.com/naver/dust3r), [MonST3R](https://github.com/Junyi42/monst3r), [Depth Pro](https://github.com/apple/ml-depth-pro) and [Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2). Our visualization code can acquired from [MonST3R](https://github.com/Junyi42/viser.git). We thank the authors for their excellent work!
+Our code is based on [DUSt3R](https://github.com/naver/dust3r), [MonST3R](https://github.com/Junyi42/monst3r), [Depth Pro](https://github.com/apple/ml-depth-pro), [Depth Anything V2](https://github.com/DepthAnything/Depth-Anything-V2) and [ControlNet](https://github.com/lllyasviel/ControlNet). Our visualization code can acquired from [MonST3R](https://github.com/Junyi42/viser.git). We thank the authors for their excellent work!
