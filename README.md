@@ -2,7 +2,7 @@
 
 
 ![Version](https://img.shields.io/badge/version-1.0.1-blue) &nbsp;
- <a href='https://arxiv.org/abs/2409.02095'><img src='https://img.shields.io/badge/arXiv-2409.02095-b31b1b.svg'></a> &nbsp;
+ <a href='https://arxiv.org/abs/2412.03079'><img src='https://img.shields.io/badge/arXiv-2412.03079-b31b1b.svg'></a> &nbsp;
  <a href='https://igl-hkust.github.io/Align3R.github.io/'><img src='https://img.shields.io/badge/Project-Page-Green'></a> &nbsp;
 
 [**Align3R: Aligned Monocular Depth Estimation for Dynamic Videos**]()
