@@ -125,6 +125,10 @@ To evaluate, you should download the following dataset:
 * [Bonn](https://www.ipb.uni-bonn.de/html/projects/rgbd_dynamic2019/rgbd_bonn_dataset.zip)
 * [TUM dynamics](https://cvg.cit.tum.de/rgbd/dataset/) (Dynamic Objects: freiburg3)
 
+For Bonn and TUM dynamics, you should use the following script to preprocess them:
+```bash
+bash datasets_preprocess/preprocess_testset.sh
+```
 Our folder structure is as follows:
 ```shell
 ├── data
@@ -220,10 +224,10 @@ Please change the _--dust3r_dynamic_model_path_, _--output_postfix_, _--dataset_
 ##### Sintel
 ```bash
 # Depth Pro
-CUDA_VISIBLE_DEVICES='0' python tool/pose_test.py --dust3r_dynamic_model_path="align3r_depthpro.pth" --output_postfix="results/sintel_pose_ours_depthpro" --dataset_name=sintel --depth_prior_name=depthpro --start_frame=0 --interval_frame=30 --mode=eval_pose --scene_graph_type=swinstride-5-noncyclic
+CUDA_VISIBLE_DEVICES='0' python tool/pose_test.py --dust3r_dynamic_model_path="align3r_depthpro.pth" --output_postfix="results/sintel_pose_ours_depthpro" --dataset_name=sintel --depth_prior_name=depthpro --start_frame=0 --interval_frame=3000 --mode=eval_pose --scene_graph_type=swinstride-5-noncyclic
 
 # Depth Anything V2
-CUDA_VISIBLE_DEVICES='0' python tool/pose_test.py --dust3r_dynamic_model_path="align3r_depthanything.pth" --output_postfix="results/sintel_pose_ours_depthanything" --dataset_name=sintel --depth_prior_name=depthanything --start_frame=0 --interval_frame=30 --mode=eval_pose --scene_graph_type=swin-5-noncyclic
+CUDA_VISIBLE_DEVICES='0' python tool/pose_test.py --dust3r_dynamic_model_path="align3r_depthanything.pth" --output_postfix="results/sintel_pose_ours_depthanything" --dataset_name=sintel --depth_prior_name=depthanything --start_frame=0 --interval_frame=3000 --mode=eval_pose --scene_graph_type=swin-5-noncyclic
 ```
 ##### Bonn
 ```bash

@@ -83,8 +83,8 @@ if set == "train":
             l, t = int(cx - min_margin_x), int(cy - min_margin_y)
             r, b = int(cx + min_margin_x), int(cy + min_margin_y)
             crop_bbox = (l, t, r, b)
-            input_rgb_image, depth_mask, input_camera_intrinsics = cropping.crop_image_depthmap(
-                input_rgb_image, depth_mask, camera_intrinsics, crop_bbox)
+            input_rgb_image, depth_mask, depth_mask, input_camera_intrinsics = cropping.crop_image_depthmap(
+                input_rgb_image, depth_mask, depth_mask, camera_intrinsics, crop_bbox)
 
             # try to set the lower dimension to img_size * 3/4 -> img_size=512 => 384
             scale_final = ((img_size * 3 // 4) / min(H, W)) + 1e-8
@@ -94,8 +94,8 @@ if set == "train":
                 scale_final = (img_size / max(H, W)) + 1e-8
                 output_resolution = np.floor(np.array([W, H]) * scale_final).astype(int)
 
-            input_rgb_image, depth_mask, input_camera_intrinsics = cropping.rescale_image_depthmap(
-                input_rgb_image, depth_mask, input_camera_intrinsics, output_resolution)
+            input_rgb_image, depth_mask, depth_mask, input_camera_intrinsics = cropping.rescale_image_depthmap(
+                input_rgb_image, depth_mask, depth_mask, input_camera_intrinsics, output_resolution)
 
             input_depthmap = depth_mask[:, :, 0]
             input_mask = depth_mask[:, :, 1]

@@ -240,7 +240,7 @@ def load_images_my(fileforder, if_depth_prior, size, square_ok=False, verbose=Tr
     if dataset_name=='bonn':
       folder_depth = sorted(os.listdir(fileforder.replace('rgb_110','depth_110')))
     elif dataset_name=='tum':
-      folder_depth = sorted(os.listdir(fileforder.replace('rgb_50_depth_est','depth_50_depth_est')))
+      folder_depth = sorted(os.listdir(fileforder.replace('rgb_50','depth_50')))
     if dataset_name == 'PointOdyssey' or dataset_name == 'FlyingThings3D': 
       supported_images_extensions = ['rgb.jpg', '.jpeg', 'rgb.png']
     else:
@@ -269,7 +269,7 @@ def load_images_my(fileforder, if_depth_prior, size, square_ok=False, verbose=Tr
               focal_length_px = 200
               pred_depth1 = pred_depth['depth']
             elif dataset_name == 'bonn':
-              pred_depth = np.load(os.path.join(root, path).replace('rgb_110','depth_prediction_depthanything').replace('.png', '.npz'))
+              pred_depth = np.load(os.path.join(root, path).replace('rgb_110','rgb_110_depth_prediction_depthanything').replace('.png', '.npz'))
               focal_length_px = 200
               pred_depth1 = pred_depth['depth']
             elif dataset_name == 'PointOdyssey' or dataset_name == 'FlyingThings3D':
@@ -277,7 +277,7 @@ def load_images_my(fileforder, if_depth_prior, size, square_ok=False, verbose=Tr
               focal_length_px = 200
               pred_depth1 = pred_depth['depth']
             elif dataset_name == 'tum':
-              pred_depth = np.load(os.path.join(root, path).replace('rgb_50_depth_est','rgb_50_depth_prediction_depthanything').replace('.png', '.npz'))
+              pred_depth = np.load(os.path.join(root, path).replace('rgb_50','rgb_50_depth_prediction_depthanything').replace('.png', '.npz'))
               focal_length_px = 200
               pred_depth1 = pred_depth['depth']
 
@@ -291,7 +291,7 @@ def load_images_my(fileforder, if_depth_prior, size, square_ok=False, verbose=Tr
               focal_length_px = pred_depth['focallength_px']
               pred_depth1 = pred_depth['depth']
             elif dataset_name == 'bonn':
-              pred_depth = np.load(os.path.join(root, path).replace('rgb_110','depth_prediction_depthpro').replace('.png', '.npz'))
+              pred_depth = np.load(os.path.join(root, path).replace('rgb_110','rgb_110_depth_prediction_depthpro').replace('.png', '.npz'))
               focal_length_px = pred_depth['focallength_px']
               pred_depth1 = pred_depth['depth']
             elif dataset_name == 'PointOdyssey' or dataset_name == 'FlyingThings3D':
@@ -299,7 +299,7 @@ def load_images_my(fileforder, if_depth_prior, size, square_ok=False, verbose=Tr
               focal_length_px = pred_depth['focallength_px']
               pred_depth1 = pred_depth['depth']
             elif dataset_name == 'tum':
-              pred_depth = np.load(os.path.join(root, path).replace('rgb_50_depth_est','rgb_50_depth_prediction_depthpro').replace('.png', '.npz'))
+              pred_depth = np.load(os.path.join(root, path).replace('rgb_50','rgb_50_depth_prediction_depthpro').replace('.png', '.npz'))
               focal_length_px = pred_depth['focallength_px']
               pred_depth1 = pred_depth['depth']
 
@@ -317,7 +317,7 @@ def load_images_my(fileforder, if_depth_prior, size, square_ok=False, verbose=Tr
           elif dataset_name == 'PointOdyssey' or dataset_name == 'FlyingThings3D':
             depth = readPFM(os.path.join(root, path).replace('_rgb.jpg', '_depth.pfm'))
           elif dataset_name == 'tum':
-            depth = depth_read_bonn(os.path.join(root.replace('rgb_50_depth_est','depth_50_depth_est'), folder_depth[i]))
+            depth = depth_read_bonn(os.path.join(root.replace('rgb_50','depth_50'), folder_depth[i]))
 
           W1, H1 = img.size
           if size == 224:
@@ -579,7 +579,7 @@ if __name__ == "__main__":
         if dataset_name == 'bonn':
           folder = os.path.join(folder, 'rgb_110')
         elif dataset_name == 'tum':
-          folder = os.path.join(folder, 'rgb_50_depth_est')
+          folder = os.path.join(folder, 'rgb_50')
         imgs, imgs_rgb, depth_list, depth_prior = load_images_my(folder, args.depth_prior, size=image_size, verbose=not silent, crop=args.crop, depth_prior_name=args.depth_prior_name, dataset_name=dataset_name)
         root, folder_content = folder, find_images(folder)
         

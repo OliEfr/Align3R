@@ -11,7 +11,7 @@ for dir in dirs:
     # sample 110 frames at the stride of 2
     frames = frames[30:80]
     # cut frames after 110
-    new_dir = dir + 'rgb_50_depth_est/'
+    new_dir = dir + 'rgb_50/'
 
     for frame in frames:
         os.makedirs(new_dir, exist_ok=True)
@@ -23,7 +23,7 @@ for dir in dirs:
     # sample 110 frames at the stride of 2
     depth_frames = depth_frames[30:80]
     # cut frames after 110
-    new_dir = dir + 'depth_50_depth_est/'
+    new_dir = dir + 'depth_50/'
 
     for frame in depth_frames:
         os.makedirs(new_dir, exist_ok=True)
@@ -34,4 +34,4 @@ for dir in dirs:
     gt_path = "groundtruth.txt"
     gt = np.loadtxt(dir + gt_path)
     gt_110 = gt[30:80]
-    np.savetxt(dir + 'groundtruth_50_depth_est.txt', gt_110)
+    np.savetxt(dir + 'groundtruth_50.txt', gt_110)

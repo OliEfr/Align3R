@@ -43,8 +43,8 @@ dataset_metadata = {
     'tum': {
         'img_path': "./data/tum",
         'mask_path': None,
-        'dir_path_func': lambda img_path, seq: os.path.join(img_path, seq, 'rgb_30'),
-        'gt_traj_func': lambda img_path, anno_path, seq: os.path.join(img_path, seq, 'groundtruth_30.txt'),
+        'dir_path_func': lambda img_path, seq: os.path.join(img_path, seq, 'rgb_50'),
+        'gt_traj_func': lambda img_path, anno_path, seq: os.path.join(img_path, seq, 'groundtruth_50.txt'),
         'traj_format': 'tum',
         'seq_list': None,
         'full_seq': True,
