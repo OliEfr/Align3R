@@ -64,25 +64,34 @@ class BaseStereoViewDataset(EasyDataset):
         raise NotImplementedError()
 
     def pixel_to_pointcloud(self, depth_map, focal_length_px):
+        """
+        Convert a depth map to a 3D point cloud.
+
+        Args:
+        depth_map (numpy.ndarray): The input depth map with shape (H, W), where each value represents the depth at that pixel.
+        focal_length_px (float): The focal length of the camera in pixels.
+
+        Returns:
+        numpy.ndarray: The resulting point cloud with shape (H, W, 3), where each point is represented by (X, Y, Z).
+        """
         height, width = depth_map.shape
         cx = width / 2
         cy = height / 2
 
-        # 创建网格坐标
+        # Create meshgrid for pixel coordinates
         u = np.arange(width)
         v = np.arange(height)
         u, v = np.meshgrid(u, v)
-        
-        # 将像素坐标转换为相机坐标
+        #depth_map[depth_map>100]=0
+        # Convert pixel coordinates to camera coordinates
         Z = depth_map
-        #print(Z.shape,u.shape,v.shape, focal_length_px.shape,focal_length_px)
         X = (u - cx) * Z / focal_length_px
         Y = (v - cy) * Z / focal_length_px
         
-        # 将坐标堆叠为 H*W*3 的点云
+        # Stack the coordinates into a point cloud (H, W, 3)
         point_cloud = np.dstack((X, Y, Z)).astype(np.float32)
-        point_cloud = self.normalize_pointcloud(point_cloud)
-        # # 过滤掉无效的深度值
+        point_cloud = normalize_pointcloud(point_cloud)
+        # Optional: Filter out invalid depth values (if necessary)
         # point_cloud = point_cloud[depth_map > 0]
         #print(point_cloud)
         return point_cloud

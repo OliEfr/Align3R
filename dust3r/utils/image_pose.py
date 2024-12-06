@@ -120,44 +120,44 @@ def _resize_pil_image(img, long_edge_size, nearest=False):
 
 def resize_numpy_image(img, long_edge_size):
     """
-    使用OpenCV将NumPy图像的尺寸调整到指定长边尺寸。
+    Resize the NumPy image to a specified long edge size using OpenCV.
     
-    参数:
-    img (numpy.ndarray): 输入的图像，形状为 (H, W, C)。
-    long_edge_size (int): 调整后的长边尺寸。
+    Args:
+    img (numpy.ndarray): Input image with shape (H, W, C).
+    long_edge_size (int): The size of the long edge after resizing.
     
-    返回:
-    numpy.ndarray: 调整后的图像。
+    Returns:
+    numpy.ndarray: The resized image.
     """
-    # 获取图像的原始尺寸
+    # Get the original dimensions of the image
     h, w = img.shape[:2]
     S = max(h, w)
 
-    # 选择插值方法
+    # Choose interpolation method
     if S > long_edge_size:
         interp = cv2.INTER_LANCZOS4
     else:
         interp = cv2.INTER_CUBIC
     
-    # 计算新的尺寸
+    # Calculate the new size
     new_size = (int(round(w * long_edge_size / S)), int(round(h * long_edge_size / S)))
     
-    # 调整图像大小
+    # Resize the image
     resized_img = cv2.resize(img, new_size, interpolation=interp)
     
     return resized_img
 
 def crop_center(img, crop_width, crop_height):
     """
-    从中心裁剪图像。
+    Crop the center of the image.
     
-    参数:
-    img (numpy.ndarray): 输入的图像，形状为 (H, W) 或 (H, W, C)。
-    crop_width (int): 裁剪的宽度。
-    crop_height (int): 裁剪的高度。
+    Args:
+    img (numpy.ndarray): Input image with shape (H, W) or (H, W, C).
+    crop_width (int): The width of the cropped area.
+    crop_height (int): The height of the cropped area.
     
-    返回:
-    numpy.ndarray: 裁剪后的图像。
+    Returns:
+    numpy.ndarray: The cropped image.
     """
     h, w = img.shape[:2]
     cx, cy = h // 2, w // 2
@@ -204,24 +204,34 @@ def crop_img(img, size, pred_depth=None, square_ok=False, nearest=False, crop=Tr
     return img, pred_depth
 
 def pixel_to_pointcloud(depth_map, focal_length_px):
+    """
+    Convert a depth map to a 3D point cloud.
+
+    Args:
+    depth_map (numpy.ndarray): The input depth map with shape (H, W), where each value represents the depth at that pixel.
+    focal_length_px (float): The focal length of the camera in pixels.
+
+    Returns:
+    numpy.ndarray: The resulting point cloud with shape (H, W, 3), where each point is represented by (X, Y, Z).
+    """
     height, width = depth_map.shape
     cx = width / 2
     cy = height / 2
 
-    # 创建网格坐标
+    # Create meshgrid for pixel coordinates
     u = np.arange(width)
     v = np.arange(height)
     u, v = np.meshgrid(u, v)
     #depth_map[depth_map>100]=0
-    # 将像素坐标转换为相机坐标
+    # Convert pixel coordinates to camera coordinates
     Z = depth_map
     X = (u - cx) * Z / focal_length_px
     Y = (v - cy) * Z / focal_length_px
     
-    # 将坐标堆叠为 H*W*3 的点云
+    # Stack the coordinates into a point cloud (H, W, 3)
     point_cloud = np.dstack((X, Y, Z)).astype(np.float32)
     point_cloud = normalize_pointcloud(point_cloud)
-    # # 过滤掉无效的深度值
+    # Optional: Filter out invalid depth values (if necessary)
     # point_cloud = point_cloud[depth_map > 0]
     #print(point_cloud)
     return point_cloud
