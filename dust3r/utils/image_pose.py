@@ -273,9 +273,9 @@ def load_images(folder_or_list, size, square_ok=False, verbose=True, dynamic_mas
             if traj_format == 'sintel':
               pred_depth = np.load(full_path.replace('final','depth_prediction_' + depth_prior_name).replace('.png', '.npz'))
             elif traj_format in ["tum", "tartanair"]:
-              pred_depth = np.load(full_path.replace('rgb_30','rgb_30_depth_prediction_' + depth_prior_name).replace('.png', '.npz'))
+              pred_depth = np.load(full_path.replace('rgb_50','rgb_50_depth_prediction_' + depth_prior_name).replace('.png', '.npz'))
             elif traj_format in ["bonn"]:
-                pred_depth = np.load(full_path.replace('rgb_110','depth_prediction_' + depth_prior_name).replace('.png', '.npz'))
+                pred_depth = np.load(full_path.replace('rgb_110','rgb_110_depth_prediction_' + depth_prior_name).replace('.png', '.npz'))
             elif traj_format in ["davis"]:
                 pred_depth = np.load(full_path.replace('JPEGImages','depth_prediction_' + depth_prior_name).replace('.jpg', '.npz').replace('480p', '1080p'))
             else:
