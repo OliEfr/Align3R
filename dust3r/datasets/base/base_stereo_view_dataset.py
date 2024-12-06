@@ -32,9 +32,11 @@ class BaseStereoViewDataset(EasyDataset):
                  transform=ImgNorm,
                  aug_crop=False,
                  aug_f=False,
-                 seed=None):
+                 seed=None,
+                 depth_prior_name='depthpro'):
         self.num_views = 2
         self.split = split
+        self.depth_prior_name = depth_prior_name
         self._set_resolutions(resolution)
         self.aug_f = aug_f
         self.transform = transform

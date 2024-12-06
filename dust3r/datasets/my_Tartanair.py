@@ -99,7 +99,7 @@ class TartanairDatasets(BaseStereoViewDataset):
             depthmap_path = img_path.replace('_rgb.jpg', '_depth.pfm')
             mask_path = img_path.replace('_rgb.jpg', '_mask.png')
             metadata_path = img_path.replace('_rgb.jpg', '_metadata.npz')
-            pred_depth = np.load(img_path.replace('.jpg', '_pred_depth.npz'))#['depth']
+            pred_depth = np.load(img_path.replace('.jpg', '_pred_depth_' + self.depth_prior_name + '.npz'))#['depth']
             focal_length_px = pred_depth['focallength_px']
             pred_depth = pred_depth['depth']
             pred_depth = self.pixel_to_pointcloud(pred_depth, focal_length_px)

@@ -91,7 +91,8 @@ class SintelDatasets(BaseStereoViewDataset):
             depthmap_path = img_path.replace('MPI-Sintel-training_images', 'MPI-Sintel-depth-training').replace('final/','depth/').replace('.png','.dpt')
             mask_path = img_path.replace('MPI-Sintel-training_images', 'MPI-Sintel-depth-training').replace('final/','dynamic_label_perfect/')
             metadata_path = img_path.replace('MPI-Sintel-training_images', 'MPI-Sintel-depth-training').replace('final/','camdata_left/').replace('.png','.cam')
-            pred_depth = np.load(img_path.replace('final','depth_prediction').replace('.png', '.npz'))#['depth']
+            
+            pred_depth = np.load(img_path.replace('final','depth_prediction_' + self.depth_prior_name).replace('.png', '.npz'))#['depth']
             focal_length_px = pred_depth['focallength_px']
             pred_depth = pred_depth['depth']
             pred_depth = self.pixel_to_pointcloud(pred_depth, focal_length_px)
