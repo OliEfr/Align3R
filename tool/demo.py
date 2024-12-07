@@ -226,7 +226,7 @@ if __name__ == '__main__':
         for fname in sorted(os.listdir(args.input_dir)):
            if fname.lower().endswith(('.jpg', '.png')):
             input_files.append(os.path.join(args.input_dir, fname))
-    else:   # input_dir is a video
+    elif args.input_dir.endswith(('.mp4', '.avi', '.mov', '.mkv')):   # input_dir is a video
         input_files = video_to_images(args.input_dir, args.input_dir.replace('.mp4', '_img'))
 
     recon_fun = functools.partial(get_reconstructed_scene, args, tmpdirname, model, args.device, args.silent, args.image_size)

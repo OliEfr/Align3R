@@ -166,7 +166,11 @@ Please download the pretrained DUSt3R [weight](https://download.europe.naverlabs
 ```bash
 bash train.sh
 ```
-
+### 🎇 Demo
+You can run the following demo code on any video. The input path can be either an mp4 video or an image folder.
+```bash
+bash demo.sh
+```
 ### 🎇 Evaluation 
 #### Video Depth
 ```bash
@@ -247,7 +251,7 @@ CUDA_VISIBLE_DEVICES='0' python tool/pose_test.py --dust3r_dynamic_model_path="a
 ```
 
 ### 🎥 Visualization
-Please use the `viser` to visualize the results, you can acquire the code from [MonST3R](https://github.com/Junyi42/viser.git). Thanks for their excellent work!
+Please use the `viser` to visualize the point cloud results, you can acquire the code from [MonST3R](https://github.com/Junyi42/viser.git). Thanks for their excellent work!
 ```bash
 python viser/visualizer_monst3r.py --data path/dataset/video --init_conf --fg_conf_thre 1.0  --no_mask
 ```
