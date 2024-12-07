@@ -50,7 +50,7 @@ def get_args_parser():
 
     parser.add_argument('--seq_list', nargs='+', default=None, help='list of sequences for pose evaluation')
 
-    parser.add_argument("--dataset_name", type=str, default=None, choices=['bonn', 'tum', 'sintel'], help="choose dataset for pose evaluation")
+    parser.add_argument("--dataset_name", type=str, default=None, choices=['bonn', 'tum', 'sintel', 'davis'], help="choose dataset for pose evaluation")
 
     # for monocular depth eval
     parser.add_argument('--no_crop', action='store_true', default=False, help='do not crop the image for monocular depth evaluation')
@@ -358,7 +358,7 @@ def eval_pose_estimation_dist_h(args, model, device, img_path, save_dir=None, ma
                 if len(scene_graph_type.split("-")) > 2:
                     scene_graph_type += f'-{args.scene_graph_type.split("-")[2]}'
             print("args.no_crop", args.no_crop)
-            imgs = load_images(filelist, size=load_img_size, verbose=False,dynamic_mask_root=mask_path_seq, crop=not args.no_crop, traj_format=args.dataset_name, start=start, interval=interval)
+            imgs = load_images(filelist, size=load_img_size, verbose=False, dynamic_mask_root=mask_path_seq, crop=not args.no_crop, traj_format=args.dataset_name, start=start, interval=interval)
 
             if args.dataset_name == 'davis' and len(imgs) > 95:
                 # use swinstride-4

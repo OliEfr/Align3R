@@ -28,15 +28,14 @@ args = parser.parse_args()
 model, transform = depth_pro.create_model_and_transforms(device='cuda')
 model.eval()
 pipe = pipeline(task="depth-estimation", model="depth-anything/Depth-Anything-V2-Large-hf",device='cuda')
-
 if args.dataset_name == "bonn":
-  dir = '../data/bonn/rgbd_bonn_dataset/'
+  dir = '../../data/bonn/rgbd_bonn_dataset/'
 elif args.dataset_name == "davis":
-  dir = '../data/davis/DAVIS/JPEGImages/480p/'
+  dir = '../../data/davis/DAVIS/JPEGImages/480p/'
 elif args.dataset_name == "sintel":
-  dir = '../data/MPI-Sintel/MPI-Sintel-training_images/training/final/'
+  dir = '../../data/MPI-Sintel/MPI-Sintel-training_images/training/final/'
 elif args.dataset_name == "tum":
-  dir = '../data/tum/' 
+  dir = '../../data/tum/' 
 
 for scene in tqdm(sorted(os.listdir(dir))):
   data_dir = dir + scene
@@ -45,7 +44,8 @@ for scene in tqdm(sorted(os.listdir(dir))):
       data_dir = data_dir + '/rgb_110'
     elif args.dataset_name == "tum":
       data_dir = data_dir + '/rgb_50'
-    for image_path in tqdm(sorted(image_paths)[int(args.a):int(args.b)]):
+    for image_path in tqdm(sorted(os.listdir(data_dir))[int(args.a):int(args.b)]):
+      #print(image_path)
       if image_path.split('.')[-1]=='jpg' or image_path.split('.')[-1]=='png': 
         # depthanything v2
         image = Image.open(os.path.join(data_dir, image_path))
@@ -82,7 +82,7 @@ for scene in tqdm(sorted(os.listdir(dir))):
       
         np.savez_compressed(path_depthanything, depth=depth)  
         # depthpro
-        image, _, f_px = depth_pro.load_rgb(image_path)
+        image, _, f_px = depth_pro.load_rgb(os.path.join(data_dir, image_path))
         image = transform(image)
         # Run inference.
         prediction = model.infer(image, f_px=f_px)

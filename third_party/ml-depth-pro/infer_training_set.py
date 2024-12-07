@@ -30,15 +30,15 @@ model.eval()
 pipe = pipeline(task="depth-estimation", model="depth-anything/Depth-Anything-V2-Large-hf",device='cuda')
 
 if args.dataset_name == "Tartanair":
-  dir = '../data/Tartanair_proc/'
+  dir = '../../data/Tartanair_proc/'
 elif args.dataset_name == "spring":
-  dir = '../data/spring_proc/train/'
+  dir = '../../data/spring_proc/train/'
 elif args.dataset_name == "SceneFlow":
-  dir = '../data/SceneFlow/'
+  dir = '../../data/SceneFlow/'
 elif args.dataset_name == "Vkitti":
-  dir = '../data/vkitti_2.0.3_proc/' 
+  dir = '../../data/vkitti_2.0.3_proc/' 
 elif args.dataset_name == "PointOdyssey":
-  dir = '../data/PointOdyssey_proc/' 
+  dir = '../../data/PointOdyssey_proc/' 
 
 image_paths = find_images(dir)
 for image_path in tqdm(sorted(image_paths)[int(args.a):int(args.b)]):

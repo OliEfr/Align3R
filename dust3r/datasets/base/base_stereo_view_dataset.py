@@ -90,7 +90,7 @@ class BaseStereoViewDataset(EasyDataset):
         
         # Stack the coordinates into a point cloud (H, W, 3)
         point_cloud = np.dstack((X, Y, Z)).astype(np.float32)
-        point_cloud = normalize_pointcloud(point_cloud)
+        point_cloud = self.normalize_pointcloud(point_cloud)
         # Optional: Filter out invalid depth values (if necessary)
         # point_cloud = point_cloud[depth_map > 0]
         #print(point_cloud)

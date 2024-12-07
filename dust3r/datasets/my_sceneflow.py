@@ -169,6 +169,8 @@ class SceneFlowDatasets(BaseStereoViewDataset):
             pred_depth = np.load(img_path.replace('.jpg', '_pred_depth_' + self.depth_prior_name + '.npz'))#['depth']
             focal_length_px = pred_depth['focallength_px']#[0][0]
             pred_depth = pred_depth['depth']
+            if focal_length_px.shape == (3,3):
+              focal_length_px = focal_length_px[0][0]
             pred_depth = self.pixel_to_pointcloud(pred_depth, focal_length_px)
             maskmap = imread_cv2(mask_path, cv2.IMREAD_UNCHANGED).astype(np.float32)
             maskmap = (maskmap / 255.0) > 0.1

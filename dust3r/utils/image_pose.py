@@ -296,6 +296,10 @@ def load_images(folder_or_list, size, square_ok=False, verbose=True, dynamic_mas
             else:
               focal_length_px = 200
             pred_depth1 = pred_depth['depth']
+
+            if len(pred_depth1.shape) == 3:
+                pred_depth1 = np.squeeze(pred_depth1)
+                
             pred_depth = pixel_to_pointcloud(pred_depth1, focal_length_px)
             W1, H1 = img.size
             img, pred_depth = crop_img(img, size, pred_depth, square_ok=square_ok, crop=crop)

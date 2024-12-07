@@ -313,7 +313,10 @@ def load_images_my(fileforder, if_depth_prior, size, square_ok=False, verbose=Tr
               pred_depth = np.load(os.path.join(root, path).replace('rgb_50','rgb_50_depth_prediction_depthpro').replace('.png', '.npz'))
               focal_length_px = pred_depth['focallength_px']
               pred_depth1 = pred_depth['depth']
-
+          #print(pred_depth1.shape)
+          if len(pred_depth1.shape) == 3:
+            pred_depth1 = np.squeeze(pred_depth1)
+            
           if not if_depth_prior:
             pred_depth = pixel_to_pointcloud(pred_depth1, focal_length_px)
           else:
