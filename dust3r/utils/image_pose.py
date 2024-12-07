@@ -243,7 +243,7 @@ def normalize_pointcloud(point_cloud):
     normalized_point_cloud = (point_cloud - min_vals) / (max_vals - min_vals)
     return normalized_point_cloud
 
-def load_images(folder_or_list, size, square_ok=False, verbose=True, dynamic_mask_root=None, crop=True, fps=0, num_frames=110, traj_format="sintel", start=0, interval=30, depth_prior_name='depthpro'):
+def load_images(folder_or_list, size, square_ok=False, verbose=True, dynamic_mask_root=None, crop=True, fps=0, traj_format="sintel", start=0, interval=30, depth_prior_name='depthpro'):
     """Open and convert all images or videos in a list or folder to proper input format for DUSt3R."""
     if isinstance(folder_or_list, str):
         if verbose:
@@ -272,7 +272,7 @@ def load_images(folder_or_list, size, square_ok=False, verbose=True, dynamic_mas
     imgs = []
     # Sort items by their names
     #start = 0
-    folder_content = sorted(folder_content, key=lambda x: x.split('/')[-1])[start:start+interval]
+    folder_content = sorted(folder_content, key=lambda x: x.split('/')[-1])[start : start + interval]
     # print(start,interval,len(folder_content))
     for path in folder_content:
         full_path = os.path.join(root, path)
@@ -289,7 +289,7 @@ def load_images(folder_or_list, size, square_ok=False, verbose=True, dynamic_mas
             elif traj_format in ["davis"]:
                 pred_depth = np.load(full_path.replace('JPEGImages','depth_prediction_' + depth_prior_name).replace('.jpg', '.npz').replace('480p', '1080p'))
             else:
-                pred_depth = np.load(full_path.replace('.png','_pred_depth.npz'))
+                pred_depth = np.load(full_path.replace('.png','_pred_depth_' + depth_prior_name + '.npz').replace('.jpg','_pred_depth_' + depth_prior_name + '.npz'), allow_pickle=True)
             #print(pred_depth)
             if depth_prior_name == 'depthpro':
               focal_length_px = pred_depth['focallength_px']
@@ -299,7 +299,7 @@ def load_images(folder_or_list, size, square_ok=False, verbose=True, dynamic_mas
 
             if len(pred_depth1.shape) == 3:
                 pred_depth1 = np.squeeze(pred_depth1)
-                
+
             pred_depth = pixel_to_pointcloud(pred_depth1, focal_length_px)
             W1, H1 = img.size
             img, pred_depth = crop_img(img, size, pred_depth, square_ok=square_ok, crop=crop)
@@ -358,8 +358,8 @@ def load_images(folder_or_list, size, square_ok=False, verbose=True, dynamic_mas
             else:
                 frame_interval = 1
             frame_indices = list(range(0, total_frames, frame_interval))
-            if num_frames is not None:
-                frame_indices = frame_indices[:num_frames]
+            if interval is not None:
+                frame_indices = frame_indices[:interval]
 
             if verbose:
                 print(f' - Video FPS: {video_fps}, Frame Interval: {frame_interval}, Total Frames to Read: {len(frame_indices)}')
