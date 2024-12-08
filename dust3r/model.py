@@ -65,8 +65,8 @@ def conv_nd(dims, *args, **kwargs):
 class AsymmetricCroCo3DStereo (
     CroCoNet,
     huggingface_hub.PyTorchModelHubMixin,
-    library_name="dust3r",
-    repo_url="https://github.com/naver/dust3r",
+    library_name="align3r",
+    repo_url="https://github.com/jiah-cloud/Align3R",
     tags=["image-to-3d"],
 ):
     """ Two siamese encoders, followed by two decoders.
