@@ -66,7 +66,8 @@ pip install transformers==4.41.2
 # DUSt3R
 wget https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth
 
-# Align3R
+# Align3R 
+# If you cannot download the weights using the following scripts, please download them locally.
 gdown --fuzzy https://drive.google.com/file/d/1-qhRtgH7rcJMYZ5sWRdkrc2_9wsR1BBG/view?usp=sharing
 gdown --fuzzy https://drive.google.com/file/d/1PPmpbASVbFdjXnD3iea-MRIHGmKsS8Vh/view?usp=sharing
 
