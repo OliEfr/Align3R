@@ -167,7 +167,7 @@ Please download the pretrained DUSt3R [weight](https://download.europe.naverlabs
 bash train.sh
 ```
 ### 🎇 Demo
-You can run the following demo code on any video. The input path can be either an mp4 video or an image folder.
+You can run the following demo code on any video. The input path can be either a mp4 video or an image folder.
 ```bash
 bash demo.sh
 ```
