@@ -63,7 +63,7 @@ pip install transformers==4.41.2
 
 5. Download the corresponding model weights:
 
-🔥🔥🔥 We upload our model weights to the Hugging Face, now you can download them via [Depth Pro](https://huggingface.co/cyun9286/Align3R_DepthPro_ViTLarge_BaseDecoder_512_dpt) and [Depth Anything V2](https://huggingface.co/cyun9286/Align3R_DepthAnythingV2_ViTLarge_BaseDecoder_512_dpt/settings).
+🔥🔥🔥 We upload our model weights to the Hugging Face, now you can download them via [Align3R (Depth Pro)](https://huggingface.co/cyun9286/Align3R_DepthPro_ViTLarge_BaseDecoder_512_dpt) and [Align3R (Depth Anything V2)](https://huggingface.co/cyun9286/Align3R_DepthAnythingV2_ViTLarge_BaseDecoder_512_dpt/settings).
 
 ```bash
 # DUSt3R
