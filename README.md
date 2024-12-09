@@ -265,8 +265,8 @@ If you find our work useful, please cite:
 
 ```bibtex
 @article{lu2024align3r,
-  title={Align3R: Aligned Monocular Depth Estimation for Dynamic Videos},Jiahao Lu, Tianyu Huang, Peng Li, Zhiyang Dou, Cheng Lin, Zhiming Cui, Zhen Dong, Sai-Kit Yeung, Wenping Wang, Yuan Liu
-  author={Lu, Jiahao and Huang, Tianyu and Li, Peng and Dou, Zhiyang and Lin, Cheng and Cui, Zhiming and Dong, Zhen and Yeung, Sai-Kit and Wang, Wenping and Liu,Yuan},
+  title={Align3R: Aligned Monocular Depth Estimation for Dynamic Videos},
+  author={Lu, Jiahao and Huang, Tianyu and Li, Peng and Dou, Zhiyang and Lin, Cheng and Cui, Zhiming and Dong, Zhen and Yeung, Sai-Kit and Wang, Wenping and Liu, Yuan},
   journal={arXiv preprint arXiv:2412.03079},
   year={2024}
 }
