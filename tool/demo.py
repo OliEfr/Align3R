@@ -40,7 +40,7 @@ def get_args_parser():
                                                          "If None, will search for an available port starting at 7860."),
                         default=None)
     parser.add_argument("--weights", type=str, help="path to the model weights", default='align3r_depthpro.pth')
-    parser.add_argument("--model_name", type=str, default=None, help="model name")
+    parser.add_argument("--model_name", type=str, default='cyun9286/Align3R_DepthPro_ViTLarge_BaseDecoder_512_dpt', help="model name")
     parser.add_argument("--device", type=str, default='cuda', help="pytorch device")
     parser.add_argument("--output_dir", type=str, default='./demo_tmp', help="value for tempfile.tempdir")
     parser.add_argument("--silent", action='store_true', default=False,
