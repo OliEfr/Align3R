@@ -55,6 +55,7 @@ def get_args_parser():
     
     # Add "share" argument if you want to make the demo accessible on the public internet
     parser.add_argument("--share", action='store_true', default=False, help="Share the demo")
+    parser.add_argument("--mode", type=str, default='eval_pose_h', choices=['eval_pose', 'eval_pose_h'], help="eval pose hierarchically or not")
     return parser
 
 def video_to_images(video_path, output_folder):
@@ -158,7 +159,7 @@ def get_reconstructed_scene(args, outdir, model, device, silent, image_size, fil
     save_folder = f'{args.output_dir}/{seq_name}'  #default is 'demo_tmp/NULL'
     os.makedirs(save_folder, exist_ok=True)
 
-    poses = scene.save_tum_poses(f'{save_folder}/pred_traj.txt')
+    #poses = scene.save_tum_poses(f'{save_folder}/pred_traj.txt')
     K = scene.save_intrinsics(f'{save_folder}/pred_intrinsics.txt')
     depth_maps = scene.save_depth_maps(save_folder, 0)
     dynamic_masks = scene.save_dynamic_masks(save_folder, 0)
@@ -167,31 +168,127 @@ def get_reconstructed_scene(args, outdir, model, device, silent, image_size, fil
     rgbs = scene.save_rgb_imgs(save_folder, 0)
     enlarge_seg_masks(save_folder, kernel_size=5 if use_gt_mask else 3) 
 
+    return scene
+
+def get_reconstructed_scene_hierachical(args, outdir, model, device, silent, image_size, filelist, schedule, niter, min_conf_thr,
+                            as_pointcloud, mask_sky, clean_depth, transparent_cams, cam_size, show_cam, scenegraph_type, winsize, refid, 
+                            seq_name, new_model_weights, temporal_smoothing_weight, translation_weight, shared_focal, 
+                            flow_loss_weight, flow_loss_start_iter, flow_loss_threshold, use_gt_mask, fps, interval, depth_prior_name):
+    """
+    from a list of images, run dust3r inference, global aligner.
+    then run get_3D_model_from_scene
+    """
+    translation_weight = float(translation_weight)
+    if new_model_weights != args.weights:
+        model = AsymmetricCroCo3DStereo.from_pretrained(new_model_weights).to(device)
+    model.eval()
+
+    #generate_monocular_depth_maps(filelist, depth_prior_name)
+
+    imgs = load_images(filelist, size=image_size, verbose=not silent, fps=fps, start=0, interval=interval, traj_format='custom', depth_prior_name=depth_prior_name)
+    if len(imgs) == 1:
+        imgs = [imgs[0], copy.deepcopy(imgs[0])]
+        imgs[1]['idx'] = 1
+    if scenegraph_type == "swin" or scenegraph_type == "swinstride" or scenegraph_type == "swin2stride":
+        scenegraph_type = scenegraph_type + "-" + str(winsize) + "-noncyclic"
+    elif scenegraph_type == "oneref":
+        scenegraph_type = scenegraph_type + "-" + str(refid)
+    clip_size = 20
+
+    while len(imgs) % clip_size == 1 or len(imgs) % clip_size == 0 or clip_size>len(imgs):
+        clip_size -= 1
+    coarse_init_pairs, keyframes_id, all_clips_pairs, all_clips_id = my_make_pairs(imgs, clip_size)
+    key_output = inference(coarse_init_pairs, model, device, batch_size=1, verbose=not silent)
+  
+    if len(imgs) > 2:
+        mode = GlobalAlignerMode.PointCloudOptimizer  
+        scene = global_aligner(key_output, device=device, mode=mode, verbose=not silent, shared_focal = shared_focal, temporal_smoothing_weight=temporal_smoothing_weight, translation_weight=translation_weight,
+                               flow_loss_weight=flow_loss_weight, flow_loss_start_epoch=flow_loss_start_iter, flow_loss_thre=flow_loss_threshold, use_self_mask=not use_gt_mask,
+                               num_total_iter=niter, empty_cache= len(filelist) > 72)
+    else:
+        mode = GlobalAlignerMode.PairViewer
+        scene = global_aligner(key_output, device=device, mode=mode, verbose=not silent)
+    lr = 0.01
+
+    if mode == GlobalAlignerMode.PointCloudOptimizer:
+        loss = scene.compute_global_alignment(init='mst', niter=niter, schedule=schedule, lr=lr)
+    init_keyposes = to_numpy(scene.get_im_poses()).tolist()
+    init_keydepths = to_numpy(scene.get_depthmaps())
+    init_keyfocals = to_numpy(scene.get_focals()).tolist()
+    offset = 0
+    pred_traj_all = [np.zeros((0,7)), np.zeros((0,))]
+    save_folder = f'{args.output_dir}/{seq_name}'  #default is 'demo_tmp/NULL'
+    os.makedirs(save_folder, exist_ok=True)
+    for init_keypose, init_keydepth, init_keyfocal, clip_pair in zip(init_keyposes, init_keydepths, init_keyfocals, all_clips_pairs):
+        clipwise_output = inference(clip_pair, model, device, batch_size=1, verbose=not silent)
+        mode_clip = GlobalAlignerMode.PointCloudOptimizer
+        scene_clip = global_aligner(clipwise_output, device=device, mode=mode, verbose=not silent, shared_focal = shared_focal, temporal_smoothing_weight=temporal_smoothing_weight, translation_weight=translation_weight,
+                               flow_loss_weight=flow_loss_weight, flow_loss_start_epoch=flow_loss_start_iter, flow_loss_thre=flow_loss_threshold, use_self_mask=not use_gt_mask,
+                               num_total_iter=niter, empty_cache= len(filelist) > 72)
+        lr = 0.01
+        init_priors = [init_keypose, init_keydepth, init_keyfocal]
+        # print('pose', init_keypose)
+        loss = scene_clip.compute_global_alignment(
+            init='mst', init_priors=init_priors, niter=niter, schedule=schedule, lr=lr,
+        )
+        pred_traj = scene_clip.get_tum_poses()
+        pred_traj_all[0] = np.concatenate([pred_traj_all[0], pred_traj[0]], axis=0)
+        pred_traj_all[1] = np.concatenate([pred_traj_all[1], pred_traj[1] + offset], axis=0)
+        K = scene_clip.save_intrinsics(f'{save_folder}/pred_intrinsics.txt')
+        depth_maps = scene_clip.save_depth_maps(save_folder, offset)
+        dynamic_masks = scene_clip.save_dynamic_masks(save_folder, offset)
+        conf = scene_clip.save_conf_maps(save_folder, offset)
+        init_conf = scene_clip.save_init_conf_maps(save_folder, offset)
+        rgbs = scene_clip.save_rgb_imgs(save_folder, offset)
+        offset += pred_traj[0].shape[0]
+
+    enlarge_seg_masks(save_folder, kernel_size=5 if use_gt_mask else 3) 
     # also return rgb, depth and confidence imgs
     # depth is normalized with the max value for all images
     # we apply the jet colormap on the confidence maps
-    rgbimg = scene.imgs
-    depths = to_numpy(scene.get_depthmaps())
-    confs = to_numpy([c for c in scene.im_conf])
-    init_confs = to_numpy([c for c in scene.init_conf_maps])
-    cmap = pl.get_cmap('jet')
-    depths_max = max([d.max() for d in depths])
-    depths = [cmap(d/depths_max) for d in depths]
-    confs_max = max([d.max() for d in confs])
-    confs = [cmap(d/confs_max) for d in confs]
-    init_confs_max = max([d.max() for d in init_confs])
-    init_confs = [cmap(d/init_confs_max) for d in init_confs]
+    return scene
 
-    imgs = []
-    for i in range(len(rgbimg)):
-        imgs.append(rgbimg[i])
-        imgs.append(rgb(depths[i]))
-        imgs.append(rgb(confs[i]))
-        imgs.append(rgb(init_confs[i]))
+def my_make_pairs(imgs, clip_size):
 
-    return scene, imgs
+    keyframes_id = []
+    coarse_init_clip = []
+    clips = []
+
+    for i in range(0, len(imgs), clip_size):
+        coarse_init_clip.append(imgs[i].copy())
+        keyframes_id.append(i)
+        clips.append(imgs[i:i + clip_size])
+
+    # coarse_init_clip
+    coarse_init_pairs = []
+    for index in range(0, len(coarse_init_clip)):
+        coarse_init_clip[index]['idx'] = index
+    for i in range(len(coarse_init_clip) - 1):
+        for j in range(i+1, len(coarse_init_clip)):
+            coarse_init_pairs.append((coarse_init_clip[i], coarse_init_clip[j]))
+    coarse_init_pairs += [(img2, img1) for img1, img2 in coarse_init_pairs]
 
 
+    # clips
+    all_clips_id = []
+    for clip in clips:
+        each_clip_id = []
+        for index in range(0, len(clip)):
+            each_clip_id.append(clip[index]['idx'])
+            clip[index]['idx'] = index
+        all_clips_id.append(each_clip_id)
+
+    stride = 2
+    all_clips_pairs = []
+    for clip in clips:
+        each_clip_pairs = []
+        for i in range(len(clip)-1):
+            for j in range(i+1, len(clip), stride):
+                each_clip_pairs.append((clip[i].copy(), clip[j].copy()))
+        each_clip_pairs += [(img2, img1) for img1, img2 in each_clip_pairs]
+        all_clips_pairs.append(each_clip_pairs)
+
+    return coarse_init_pairs, keyframes_id, all_clips_pairs, all_clips_id
 
 if __name__ == '__main__':
     parser = get_args_parser()
@@ -228,11 +325,12 @@ if __name__ == '__main__':
             input_files.append(os.path.join(args.input_dir, fname))
     elif args.input_dir.endswith(('.mp4', '.avi', '.mov', '.mkv')):   # input_dir is a video
         input_files = video_to_images(args.input_dir, args.input_dir.replace('.mp4', '_img'))
-
-    recon_fun = functools.partial(get_reconstructed_scene, args, tmpdirname, model, args.device, args.silent, args.image_size)
-    
+    if args.mode == 'eval_pose':
+      recon_fun = functools.partial(get_reconstructed_scene, args, tmpdirname, model, args.device, args.silent, args.image_size)
+    elif args.mode == 'eval_pose_h':
+      recon_fun = functools.partial(get_reconstructed_scene_hierachical, args, tmpdirname, model, args.device, args.silent, args.image_size)
     # Call the function with default parameters
-    scene, imgs = recon_fun(
+    scene = recon_fun(
         filelist=input_files,
         schedule='linear',
         niter=300,

@@ -346,7 +346,16 @@ class BasePCOptimizer (nn.Module):
             img = img[..., ::-1]
             cv2.imwrite(f'{path}/frame_{start+i:04d}_rgb.png', img*255)
             images.append(Image.open(f'{path}/frame_{start+i:04d}_rgb.png'))
-        images[0].save(f'{path}/_rgb.gif', save_all=True, append_images=images[1:], duration=100, loop=0)
+        gif_path = os.path.join(path, '_rgb.gif')
+        if os.path.exists(gif_path):
+            existing_gif = Image.open(gif_path)
+            existing_frames = [frame.copy() for frame in ImageSequence.Iterator(existing_gif)]
+            all_frames = existing_frames + images
+            all_frames[0].save(gif_path, save_all=True, append_images=all_frames[1:], duration=100, loop=0)
+        else:
+            images[0].save(gif_path, save_all=True, append_images=images[1:], duration=100, loop=0)
+        
+        # images[0].save(f'{path}/_rgb.gif', save_all=True, append_images=images[1:], duration=100, loop=0)
         return imgs
 
     def save_dynamic_masks(self, path, start):
@@ -366,8 +375,18 @@ class BasePCOptimizer (nn.Module):
             cv2.imwrite(img_path, depth_map_colored)
             images.append(Image.open(img_path))
             np.save(f'{path}/frame_{(start+i):04d}.npy', depth_map.detach().cpu().numpy())
+
+        gif_path = os.path.join(path, '_depth_maps.gif')
+        if os.path.exists(gif_path):
+            existing_gif = Image.open(gif_path)
+            existing_frames = [frame.copy() for frame in ImageSequence.Iterator(existing_gif)]
+            all_frames = existing_frames + images
+            all_frames[0].save(gif_path, save_all=True, append_images=all_frames[1:], duration=100, loop=0)
+        else:
+            images[0].save(gif_path, save_all=True, append_images=images[1:], duration=100, loop=0)
         
-        images[0].save(f'{path}/_depth_maps.gif', save_all=True, append_images=images[1:], duration=100, loop=0)
+
+
         
         return depth_maps
 
@@ -375,6 +394,7 @@ class BasePCOptimizer (nn.Module):
         pw_poses = self.get_pw_poses()  # cam-to-world
         pw_adapt = self.get_adaptors()
         proj_pts3d = self.get_pts3d()
+        #print('pose', pw_poses)
         # pre-compute pixel weights
         weight_i = {i_j: self.conf_trf(c) for i_j, c in self.conf_i.items()}
         weight_j = {i_j: self.conf_trf(c) for i_j, c in self.conf_j.items()}
@@ -382,7 +402,7 @@ class BasePCOptimizer (nn.Module):
         loss = 0
         if ret_details:
             details = -torch.ones((self.n_imgs, self.n_imgs))
-
+        #print(self.edges)
         for e, (i, j) in enumerate(self.edges):
             i_j = edge_str(i, j)
             # distance in image i and j
