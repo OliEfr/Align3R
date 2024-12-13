@@ -4,8 +4,10 @@
 ![Version](https://img.shields.io/badge/version-1.0.1-blue) &nbsp;
  <a href='https://arxiv.org/abs/2412.03079'><img src='https://img.shields.io/badge/arXiv-2412.03079-b31b1b.svg'></a> &nbsp;
  <a href='https://igl-hkust.github.io/Align3R.github.io/'><img src='https://img.shields.io/badge/Project-Page-Green'></a> &nbsp;
- [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa]
-[![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-green)](https://huggingface.co/cyun9286/Align3R_DepthPro_ViTLarge_BaseDecoder_512_dpt)
+ [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa] &nbsp;
+[![Hugging Face Model](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-green)](https://huggingface.co/cyun9286/Align3R_DepthPro_ViTLarge_BaseDecoder_512_dpt)&nbsp;
+[![Hugging Face Spaces](https://img.shields.io/badge/🤗%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/cyun9286/Align3R)
+
 
 [cc-by-nc-sa]: http://creativecommons.org/licenses/by-nc-sa/4.0/
 [cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
