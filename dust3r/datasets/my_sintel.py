@@ -12,7 +12,6 @@ import re
 import cv2
 import os
 import sys
-sys.path.append('/home/lipeng/ljh_code/Video_Depth_CVPR2025-main/dust3r_train')
 from dust3r.datasets.base.base_stereo_view_dataset import BaseStereoViewDataset
 from dust3r.utils.image import imread_cv2
 TAG_FLOAT = 202021.25
@@ -141,7 +140,7 @@ if __name__ == "__main__":
     from dust3r.viz import SceneViz, auto_cam_size
     from dust3r.utils.image import rgb
 
-    dataset = SintelDatasets(split='train', ROOT="/data/lipeng/ljh_data/MPI-Sintel/MPI-Sintel/MPI-Sintel-training_images/training/final", resolution=512, aug_crop=16)
+    dataset = SintelDatasets(split='train', ROOT="../../data/MPI-Sintel/MPI-Sintel-training_images/training/final", resolution=512, aug_crop=16)
 
     a = len(dataset)
     for idx in np.random.permutation(len(dataset)):

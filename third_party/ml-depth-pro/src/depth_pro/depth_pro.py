@@ -7,7 +7,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Mapping, Optional, Tuple, Union
 import sys
-#sys.path.append('/home/lipeng/ljh_code/Video_Depth_CVPR2025-main/ml-depth-pro')
 import torch
 from torch import nn
 from torchvision.transforms import (
@@ -40,7 +39,7 @@ class DepthProConfig:
 DEFAULT_MONODEPTH_CONFIG_DICT = DepthProConfig(
     patch_encoder_preset="dinov2l16_384",
     image_encoder_preset="dinov2l16_384",
-    checkpoint_uri="/home/lipeng/ljh_code/Video_Depth_CVPR2025-main/ml-depth-pro/checkpoints/depth_pro.pt",
+    checkpoint_uri="./third_party/ml-depth-pro/checkpoints/depth_pro.pt",
     decoder_features=256,
     use_fov_head=True,
     fov_encoder_preset="dinov2l16_384",
