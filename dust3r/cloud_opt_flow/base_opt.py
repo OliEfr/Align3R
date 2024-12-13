@@ -24,7 +24,7 @@ from scipy.spatial.transform import Rotation
 from dust3r.utils.vo_eval import save_trajectory_tum_format
 import os
 import matplotlib.pyplot as plt
-from PIL import Image
+from PIL import Image, ImageSequence
 
 def c2w_to_tumpose(c2w):
     """
@@ -323,7 +323,9 @@ class BasePCOptimizer (nn.Module):
     def save_intrinsics(self, path):
         K_raw = self.get_intrinsics()
         K = K_raw.reshape(-1, 9)
-        np.savetxt(path, K.detach().cpu().numpy(), fmt='%.6f')
+        with open(path, 'a') as f:  
+          np.savetxt(f, K.detach().cpu().numpy(), fmt='%.6f')
+        #np.savetxt(path, K.detach().cpu().numpy(), fmt='%.6f')
         return K_raw
 
     def save_conf_maps(self, path, start):

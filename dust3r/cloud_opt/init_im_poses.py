@@ -251,6 +251,158 @@ def minimum_spanning_tree(imshapes, edges, pred_i, pred_j, conf_i, conf_j, im_co
 
     return pts3d, msp_edges, im_focals, im_poses
 
+def minimum_spanning_tree1(imshapes, edges, pred_i, pred_j, conf_i, conf_j, im_conf, min_conf_thr,
+                          device, init_priors=None, has_im_poses=True, niter_PnP=10, verbose=True, save_score_path=None):
+    n_imgs = len(imshapes)
+    eadge_and_scores = compute_edge_scores(map(i_j_ij, edges), conf_i, conf_j)
+    sparse_graph = -dict_to_sparse_graph(eadge_and_scores)
+    msp = sp.csgraph.minimum_spanning_tree(sparse_graph).tocoo()
+
+    # temp variable to store 3d points
+    pts3d = [None] * len(imshapes)
+
+    todo = sorted(zip(-msp.data, msp.row, msp.col))  # sorted edges
+    im_poses = [None] * n_imgs
+    im_focals = [None] * n_imgs
+
+    # init with specific edge
+    score, i, j = None, None, None
+    if init_priors is None:
+        score, i, j = todo.pop()
+        if verbose:
+            print(f' init edge ({i}*,{j}*) {score=}')
+        if save_score_path is not None:
+            draw_edge_scores_map(eadge_and_scores, save_score_path, n_imgs=n_imgs)
+            save_tree_path = save_score_path.replace(".png", "_tree.txt")
+            with open(save_tree_path, "w") as f:
+                f.write(f'init edge ({i}*,{j}*) {score=}\n')
+        i_j = edge_str(i, j)
+        pts3d[i] = pred_i[i_j].clone() # the first one is set to be world coordinate
+        pts3d[j] = pred_j[i_j].clone()
+        done = {i, j}
+        im_poses[i] = torch.eye(4, device=device)
+        im_focals[i] = estimate_focal(pred_i[i_j])
+        msp_edges = [(i, j)]
+        while todo:
+            # each time, predict the next one
+            score, i, j = todo.pop()
+
+            if im_focals[i] is None:
+                im_focals[i] = estimate_focal(pred_i[i_j])
+
+            if i in done:   # the first frame is already set, align the second frame with the first frame
+                if verbose:
+                    print(f' init edge ({i},{j}*) {score=}')
+                if save_score_path is not None:
+                    with open(save_tree_path, "a") as f:
+                        f.write(f'init edge ({i},{j}*) {score=}\n')
+                assert j not in done
+                # align pred[i] with pts3d[i], and then set j accordingly
+                i_j = edge_str(i, j)
+                s, R, T = rigid_points_registration(pred_i[i_j], pts3d[i], conf=conf_i[i_j])
+                trf = sRT_to_4x4(s, R, T, device)
+                pts3d[j] = geotrf(trf, pred_j[i_j])
+                done.add(j)
+                msp_edges.append((i, j))
+
+                if has_im_poses and im_poses[i] is None:
+                    im_poses[i] = sRT_to_4x4(1, R, T, device)
+
+            elif j in done:  # the second frame is already set, align the first frame with the second frame
+                if verbose:
+                    print(f' init edge ({i}*,{j}) {score=}')
+                if save_score_path is not None:
+                    with open(save_tree_path, "a") as f:
+                        f.write(f'init edge ({i}*,{j}) {score=}\n')
+                assert i not in done
+                i_j = edge_str(i, j)
+                s, R, T = rigid_points_registration(pred_j[i_j], pts3d[j], conf=conf_j[i_j])
+                trf = sRT_to_4x4(s, R, T, device)
+                pts3d[i] = geotrf(trf, pred_i[i_j])
+                done.add(i)
+                msp_edges.append((i, j))
+
+                if has_im_poses and im_poses[i] is None:
+                    im_poses[i] = sRT_to_4x4(1, R, T, device)
+            else:
+                # let's try again later
+                todo.insert(0, (score, i, j))
+    else:
+        for idx1, temp in enumerate(init_priors[1]):
+          init_keypose = np.array(init_priors[0][idx1]).astype(np.float32)
+          init_keyfocal = init_priors[2][idx1][0]
+          im_poses[temp] = torch.from_numpy(init_keypose).to(device)
+          pts3d[temp] = torch.from_numpy(init_priors[3][idx1]).to(device)
+          im_focals[temp] = float(init_keyfocal)
+    
+        # set initial pointcloud based on pairwise graph
+        msp_edges = []
+        while todo:
+            # each time, predict the next one
+            score, i, j = todo.pop()
+            i_j = edge_str(i, j)
+            if im_focals[i] is None:
+                im_focals[i] = estimate_focal(pred_i[i_j])
+
+            if i in init_priors[1]:   # the first frame is already set, align the second frame with the first frame
+                if verbose:
+                    print(f' init edge ({i},{j}*) {score=}')
+                if save_score_path is not None:
+                    with open(save_tree_path, "a") as f:
+                        f.write(f'init edge ({i},{j}*) {score=}\n')
+                if j not in init_priors[1]:
+                  # align pred[i] with pts3d[i], and then set j accordingly
+                  i_j = edge_str(i, j)
+                  s, R, T = rigid_points_registration(pred_i[i_j], pts3d[i], conf=conf_i[i_j])
+                  trf = sRT_to_4x4(s, R, T, device)
+                  pts3d[j] = geotrf(trf, pred_j[i_j])
+                  init_priors[1].append(j)
+                  msp_edges.append((i, j))
+
+                  if has_im_poses and im_poses[i] is None:
+                      im_poses[i] = sRT_to_4x4(1, R, T, device)
+
+            elif j in init_priors[1]:  # the second frame is already set, align the first frame with the second frame
+                if verbose:
+                    print(f' init edge ({i}*,{j}) {score=}')
+                if save_score_path is not None:
+                    with open(save_tree_path, "a") as f:
+                        f.write(f'init edge ({i}*,{j}) {score=}\n')
+                if i not in init_priors[1]:
+                  i_j = edge_str(i, j)
+                  s, R, T = rigid_points_registration(pred_j[i_j], pts3d[j], conf=conf_j[i_j])
+                  trf = sRT_to_4x4(s, R, T, device)
+                  pts3d[i] = geotrf(trf, pred_i[i_j])
+                  init_priors[1].append(i)
+                  msp_edges.append((i, j))
+
+                  if has_im_poses and im_poses[i] is None:
+                      im_poses[i] = sRT_to_4x4(1, R, T, device)
+            else:
+                # let's try again later
+                todo.insert(0, (score, i, j))
+
+    if has_im_poses:
+        # complete all missing informations
+        pair_scores = list(sparse_graph.values())  # already negative scores: less is best
+        edges_from_best_to_worse = np.array(list(sparse_graph.keys()))[np.argsort(pair_scores)]
+        for i, j in edges_from_best_to_worse.tolist():
+            if im_focals[i] is None:
+                im_focals[i] = estimate_focal(pred_i[edge_str(i, j)])
+
+        for i in range(n_imgs):
+            if im_poses[i] is None:
+                msk = im_conf[i] > min_conf_thr
+                res = fast_pnp(pts3d[i], im_focals[i], msk=msk, device=device, niter_PnP=niter_PnP)
+                if res:
+                    im_focals[i], im_poses[i] = res
+            if im_poses[i] is None:
+                im_poses[i] = torch.eye(4, device=device)
+        im_poses = torch.stack(im_poses)
+    else:
+        im_poses = im_focals = None
+
+    return pts3d, msp_edges, im_focals, im_poses
 
 def dict_to_sparse_graph(dic):
     n_imgs = max(max(e) for e in dic) + 1

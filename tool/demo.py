@@ -13,7 +13,6 @@ import functools
 import copy
 from tqdm import tqdm
 import cv2
-
 from dust3r.inference import inference
 from dust3r.model import AsymmetricCroCo3DStereo
 from dust3r.image_pairs import make_pairs
@@ -45,13 +44,13 @@ def get_args_parser():
     parser.add_argument("--output_dir", type=str, default='./demo_tmp', help="value for tempfile.tempdir")
     parser.add_argument("--silent", action='store_true', default=False,
                         help="silence logs")
-    parser.add_argument("--input_dir", type=str, help="Path to input images directory", default=None)
-    parser.add_argument("--seq_name", type=str, help="Sequence name for evaluation", default='NULL')
+    parser.add_argument("--input_dir", type=str, default='', help="Path to input images directory")
+    parser.add_argument("--seq_name", type=str, default='bear', help="Sequence name for evaluation")
     parser.add_argument("--depth_prior_name", type=str, default='depthpro', choices=['depthpro', 'depthanything'], help="the name of monocular depth estimation model")
     
     parser.add_argument('--use_gt_davis_masks', action='store_true', default=False, help='Use ground truth masks for DAVIS')
     parser.add_argument('--fps', type=int, default=0, help='FPS for video processing')
-    parser.add_argument('--interval', type=int, default=200, help='Maximum number of frames for video processing')
+    parser.add_argument('--interval', type=int, default=30, help='Maximum number of frames for video processing')
     
     # Add "share" argument if you want to make the demo accessible on the public internet
     parser.add_argument("--share", action='store_true', default=False, help="Share the demo")
@@ -183,7 +182,7 @@ def get_reconstructed_scene_hierachical(args, outdir, model, device, silent, ima
         model = AsymmetricCroCo3DStereo.from_pretrained(new_model_weights).to(device)
     model.eval()
 
-    #generate_monocular_depth_maps(filelist, depth_prior_name)
+    generate_monocular_depth_maps(filelist, depth_prior_name)
 
     imgs = load_images(filelist, size=image_size, verbose=not silent, fps=fps, start=0, interval=interval, traj_format='custom', depth_prior_name=depth_prior_name)
     if len(imgs) == 1:
@@ -212,6 +211,7 @@ def get_reconstructed_scene_hierachical(args, outdir, model, device, silent, ima
 
     if mode == GlobalAlignerMode.PointCloudOptimizer:
         loss = scene.compute_global_alignment(init='mst', niter=niter, schedule=schedule, lr=lr)
+
     init_keyposes = to_numpy(scene.get_im_poses()).tolist()
     init_keydepths = to_numpy(scene.get_depthmaps())
     init_keyfocals = to_numpy(scene.get_focals()).tolist()
@@ -248,6 +248,110 @@ def get_reconstructed_scene_hierachical(args, outdir, model, device, silent, ima
     # we apply the jet colormap on the confidence maps
     return scene
 
+def group_by_clip_size(keyframes_id, init_keyposes, init_keydepths, init_keyfocals, clip_size):
+    grouped_poses = {}
+    grouped_depths = {}
+    grouped_focals = {}
+    grouped_idx = {}
+    for idx, kf_id in enumerate(keyframes_id):
+        group_idx = kf_id // clip_size
+        offset_idx = kf_id % clip_size  
+        if group_idx not in grouped_poses:
+            grouped_poses[group_idx] = []
+            grouped_depths[group_idx] = []
+            grouped_focals[group_idx] = []
+            grouped_idx[group_idx] = []
+        grouped_idx[group_idx].append(offset_idx)
+        grouped_poses[group_idx].append(init_keyposes[idx])
+        grouped_depths[group_idx].append(init_keydepths[idx])
+        grouped_focals[group_idx].append(init_keyfocals[idx])
+    
+    return grouped_poses, grouped_depths, grouped_focals, grouped_idx
+
+def get_reconstructed_scene_hierachical1(args, outdir, model, device, silent, image_size, filelist, schedule, niter, min_conf_thr,
+                            as_pointcloud, mask_sky, clean_depth, transparent_cams, cam_size, show_cam, scenegraph_type, winsize, refid, 
+                            seq_name, new_model_weights, temporal_smoothing_weight, translation_weight, shared_focal, 
+                            flow_loss_weight, flow_loss_start_iter, flow_loss_threshold, use_gt_mask, fps, interval, depth_prior_name):
+    """
+    from a list of images, run dust3r inference, global aligner.
+    then run get_3D_model_from_scene
+    """
+    translation_weight = float(translation_weight)
+    if new_model_weights != args.weights:
+        model = AsymmetricCroCo3DStereo.from_pretrained(new_model_weights).to(device)
+    model.eval()
+
+    generate_monocular_depth_maps(filelist, depth_prior_name)
+
+    imgs = load_images(filelist, size=image_size, verbose=not silent, fps=fps, start=0, interval=interval, traj_format='custom', depth_prior_name=depth_prior_name)
+    if len(imgs) == 1:
+        imgs = [imgs[0], copy.deepcopy(imgs[0])]
+        imgs[1]['idx'] = 1
+    if scenegraph_type == "swin" or scenegraph_type == "swinstride" or scenegraph_type == "swin2stride":
+        scenegraph_type = scenegraph_type + "-" + str(winsize) + "-noncyclic"
+    elif scenegraph_type == "oneref":
+        scenegraph_type = scenegraph_type + "-" + str(refid)
+    clip_size = 20
+
+    while len(imgs) % clip_size == 1 or len(imgs) % clip_size == 0 or clip_size>len(imgs):
+        clip_size -= 1
+    coarse_init_pairs, keyframes_id, all_clips_pairs, all_clips_id = my_make_pairs2(imgs, clip_size)
+    key_output = inference(coarse_init_pairs, model, device, batch_size=1, verbose=not silent)
+  
+    if len(imgs) > 2:
+        mode = GlobalAlignerMode.PointCloudOptimizer  
+        scene = global_aligner(key_output, device=device, mode=mode, verbose=not silent, shared_focal = shared_focal, temporal_smoothing_weight=temporal_smoothing_weight, translation_weight=translation_weight,
+                               flow_loss_weight=flow_loss_weight, flow_loss_start_epoch=flow_loss_start_iter, flow_loss_thre=flow_loss_threshold, use_self_mask=not use_gt_mask,
+                               num_total_iter=niter, empty_cache= len(filelist) > 72)
+    else:
+        mode = GlobalAlignerMode.PairViewer
+        scene = global_aligner(key_output, device=device, mode=mode, verbose=not silent)
+    lr = 0.01
+
+    if mode == GlobalAlignerMode.PointCloudOptimizer:
+        loss = scene.compute_global_alignment(init='mst', niter=niter, schedule=schedule, lr=lr)
+        
+    init_keyposes = to_numpy(scene.get_im_poses()).tolist()
+    init_keypts3d = to_numpy(scene.get_pts3d())
+    init_keyfocals = to_numpy(scene.get_focals()).tolist()
+
+    grouped_poses, grouped_pts3d, grouped_focals, grouped_idx = group_by_clip_size(keyframes_id, init_keyposes, init_keypts3d, init_keyfocals, clip_size)
+    offset = 0
+    pred_traj_all = [np.zeros((0,7)), np.zeros((0,))]
+    save_folder = f'{args.output_dir}/{seq_name}'  #default is 'demo_tmp/NULL'
+    os.makedirs(save_folder, exist_ok=True)
+    for i, clip_pair in enumerate(all_clips_pairs):
+        init_keypose, init_pts3d, init_keyfocal, init_idx = grouped_poses[i], grouped_pts3d[i], grouped_focals[i], grouped_idx[i]
+
+        clipwise_output = inference(clip_pair, model, device, batch_size=1, verbose=not silent)
+        mode_clip = GlobalAlignerMode.PointCloudOptimizer
+        scene_clip = global_aligner(clipwise_output, device=device, mode=mode, verbose=not silent, shared_focal = shared_focal, temporal_smoothing_weight=temporal_smoothing_weight, translation_weight=translation_weight,
+                               flow_loss_weight=flow_loss_weight, flow_loss_start_epoch=flow_loss_start_iter, flow_loss_thre=flow_loss_threshold, use_self_mask=not use_gt_mask,
+                               num_total_iter=niter, empty_cache= len(filelist) > 72)
+        lr = 0.01
+        init_priors = [init_keypose, init_idx, init_keyfocal, init_pts3d]
+        # print('pose', init_keypose)
+        loss = scene_clip.compute_global_alignment(
+            init='mst', init_priors=init_priors, niter=niter, schedule=schedule, lr=lr,
+        )
+        pred_traj = scene_clip.get_tum_poses()
+        pred_traj_all[0] = np.concatenate([pred_traj_all[0], pred_traj[0]], axis=0)
+        pred_traj_all[1] = np.concatenate([pred_traj_all[1], pred_traj[1] + offset], axis=0)
+        K = scene_clip.save_intrinsics(f'{save_folder}/pred_intrinsics.txt')
+        depth_maps = scene_clip.save_depth_maps(save_folder, offset)
+        dynamic_masks = scene_clip.save_dynamic_masks(save_folder, offset)
+        conf = scene_clip.save_conf_maps(save_folder, offset)
+        init_conf = scene_clip.save_init_conf_maps(save_folder, offset)
+        rgbs = scene_clip.save_rgb_imgs(save_folder, offset)
+        offset += pred_traj[0].shape[0]
+
+    enlarge_seg_masks(save_folder, kernel_size=5 if use_gt_mask else 3) 
+    # also return rgb, depth and confidence imgs
+    # depth is normalized with the max value for all images
+    # we apply the jet colormap on the confidence maps
+    return scene
+
+
 def my_make_pairs(imgs, clip_size):
 
     keyframes_id = []
@@ -260,6 +364,75 @@ def my_make_pairs(imgs, clip_size):
         clips.append(imgs[i:i + clip_size])
 
     # coarse_init_clip
+    coarse_init_pairs = []
+    for index in range(0, len(coarse_init_clip)):
+        coarse_init_clip[index]['idx'] = index
+    for i in range(len(coarse_init_clip) - 1):
+        for j in range(i+1, len(coarse_init_clip)):
+            coarse_init_pairs.append((coarse_init_clip[i], coarse_init_clip[j]))
+    coarse_init_pairs += [(img2, img1) for img1, img2 in coarse_init_pairs]
+
+
+    # clips
+    all_clips_id = []
+    for clip in clips:
+        each_clip_id = []
+        for index in range(0, len(clip)):
+            each_clip_id.append(clip[index]['idx'])
+            clip[index]['idx'] = index
+        all_clips_id.append(each_clip_id)
+
+    stride = 2
+    all_clips_pairs = []
+    for clip in clips:
+        each_clip_pairs = []
+        for i in range(len(clip)-1):
+            for j in range(i+1, len(clip), stride):
+                each_clip_pairs.append((clip[i].copy(), clip[j].copy()))
+        each_clip_pairs += [(img2, img1) for img1, img2 in each_clip_pairs]
+        all_clips_pairs.append(each_clip_pairs)
+
+    return coarse_init_pairs, keyframes_id, all_clips_pairs, all_clips_id
+
+def select_images_with_fixed_intervals(imgs, clip_size):
+
+    if clip_size >= len(imgs):
+        return imgs[:clip_size]
+
+    interval = len(imgs) / clip_size
+
+    selected_indices = [int(i * interval) for i in range(clip_size)]
+
+    selected_images = [imgs[i] for i in selected_indices]
+
+    return selected_images
+
+def my_make_pairs2(imgs, clip_size):
+
+    keyframes_id = []
+    coarse_init_clip = []
+    clips = []
+
+    for i in range(0, len(imgs), clip_size):
+        coarse_init_clip.append(imgs[i].copy())
+        keyframes_id.append(i)
+        clips.append(imgs[i:i + clip_size])
+
+    # coarse_init_clip
+    clip_size = 10
+    interval = len(imgs) / clip_size
+
+    selected_indices = [int(i * interval) for i in range(clip_size)]
+
+    for i in selected_indices:
+        if i not in keyframes_id:
+            keyframes_id.append(i)
+            coarse_init_clip.append(imgs[i].copy())
+
+    sorted_indices = sorted(range(len(keyframes_id)), key=lambda k: keyframes_id[k])
+    keyframes_id.sort()
+    coarse_init_clip[:] = [coarse_init_clip[i] for i in sorted_indices]
+
     coarse_init_pairs = []
     for index in range(0, len(coarse_init_clip)):
         coarse_init_clip[index]['idx'] = index
