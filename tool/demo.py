@@ -18,6 +18,7 @@ from dust3r.model import AsymmetricCroCo3DStereo
 from dust3r.image_pairs import make_pairs
 from dust3r.utils.image_pose import load_images, rgb, enlarge_seg_masks
 from dust3r.utils.device import to_numpy
+from dust3r.utils.vo_eval import save_trajectory_tum_format
 from dust3r.cloud_opt_flow import global_aligner, GlobalAlignerMode
 import matplotlib.pyplot as pl
 from transformers import pipeline
@@ -158,7 +159,7 @@ def get_reconstructed_scene(args, outdir, model, device, silent, image_size, fil
     save_folder = f'{args.output_dir}/{seq_name}'  #default is 'demo_tmp/NULL'
     os.makedirs(save_folder, exist_ok=True)
 
-    #poses = scene.save_tum_poses(f'{save_folder}/pred_traj.txt')
+    poses = scene.save_tum_poses(f'{save_folder}/pred_traj.txt')
     K = scene.save_intrinsics(f'{save_folder}/pred_intrinsics.txt')
     depth_maps = scene.save_depth_maps(save_folder, 0)
     dynamic_masks = scene.save_dynamic_masks(save_folder, 0)
@@ -234,6 +235,7 @@ def get_reconstructed_scene_hierachical(args, outdir, model, device, silent, ima
         pred_traj = scene_clip.get_tum_poses()
         pred_traj_all[0] = np.concatenate([pred_traj_all[0], pred_traj[0]], axis=0)
         pred_traj_all[1] = np.concatenate([pred_traj_all[1], pred_traj[1] + offset], axis=0)
+        save_trajectory_tum_format(pred_traj_all, f'{save_folder}/pred_traj.txt')
         K = scene_clip.save_intrinsics(f'{save_folder}/pred_intrinsics.txt')
         depth_maps = scene_clip.save_depth_maps(save_folder, offset)
         dynamic_masks = scene_clip.save_dynamic_masks(save_folder, offset)
