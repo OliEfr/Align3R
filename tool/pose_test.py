@@ -450,7 +450,7 @@ def eval_pose_estimation_dist_h(args, model, device, img_path, save_dir=None, ma
                     loss = scene_clip.compute_global_alignment(
                         init='mst', init_priors=init_priors, niter=args.n_iter, schedule=args.pose_schedule, lr=lr,
                     )
-                    pred_traj = scene_clip.get_tum_poses()
+                    pred_traj = scene_clip.get_tum_poses(init_keypose)
                     pred_traj_all[0] = np.concatenate([pred_traj_all[0], pred_traj[0]],axis=0)
                     pred_traj_all[1] = np.concatenate([pred_traj_all[1], pred_traj[1] + offset],axis=0)
                     scene_clip.save_depth_maps(f'{save_dir}/{seq}', offset)

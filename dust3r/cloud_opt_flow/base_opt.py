@@ -302,10 +302,29 @@ class BasePCOptimizer (nn.Module):
             self.im_conf[i].data[:] = new_conf
         return self
 
-    def get_tum_poses(self):
+    def align_poses(self, init_keypose, poses):
+        # Compute the relative transformation T_relative = init_keypose^{-1} * poses[0]
+        T_relative = init_keypose @ np.linalg.inv(poses[0])
+        
+        # Align poses[0] to init_keypose
+        aligned_poses = np.zeros_like(poses)
+        aligned_poses[0] = init_keypose
+        
+        # Apply the relative transformation to poses[1:]
+        for i in range(1, poses.shape[0]):
+            aligned_poses[i] = T_relative @ poses[i]
+        
+        return aligned_poses
+
+    def get_tum_poses(self, init_keypose):
         poses = self.get_im_poses()
+        #relative_pose = poses[0]@init_keypose.T
+        #print(poses.shape)
+        #print(np.array(init_keypose).shape)
+        poses = self.align_poses(np.array(init_keypose), to_numpy(poses))
         tt = np.arange(len(poses)).astype(float)
         tum_poses = [c2w_to_tumpose(p) for p in poses]
+        #print(tum_poses[0].shape)
         tum_poses = np.stack(tum_poses, 0)
         return [tum_poses, tt]
 

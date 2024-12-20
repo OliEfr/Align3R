@@ -232,7 +232,7 @@ def get_reconstructed_scene_hierachical(args, outdir, model, device, silent, ima
         loss = scene_clip.compute_global_alignment(
             init='mst', init_priors=init_priors, niter=niter, schedule=schedule, lr=lr,
         )
-        pred_traj = scene_clip.get_tum_poses()
+        pred_traj = scene_clip.get_tum_poses(init_keypose)
         pred_traj_all[0] = np.concatenate([pred_traj_all[0], pred_traj[0]], axis=0)
         pred_traj_all[1] = np.concatenate([pred_traj_all[1], pred_traj[1] + offset], axis=0)
         save_trajectory_tum_format(pred_traj_all, f'{save_folder}/pred_traj.txt')
@@ -293,7 +293,7 @@ def get_reconstructed_scene_hierachical1(args, outdir, model, device, silent, im
         scenegraph_type = scenegraph_type + "-" + str(winsize) + "-noncyclic"
     elif scenegraph_type == "oneref":
         scenegraph_type = scenegraph_type + "-" + str(refid)
-    clip_size = 20
+    clip_size = 5
 
     while len(imgs) % clip_size == 1 or len(imgs) % clip_size == 0 or clip_size>len(imgs):
         clip_size -= 1
