@@ -86,7 +86,7 @@ for set in set_list:
             r, b = int(cx + min_margin_x), int(cy + min_margin_y)
             crop_bbox = (l, t, r, b)
             input_rgb_image, depth_mask, depth_mask, input_camera_intrinsics = cropping.crop_image_depthmap(
-                input_rgb_image, depth_mask, depth_mask. camera_intrinsics, crop_bbox)
+                input_rgb_image, depth_mask, depth_mask, camera_intrinsics, crop_bbox)
 
             # try to set the lower dimension to img_size * 3/4 -> img_size=512 => 384
             scale_final = ((img_size * 3 // 4) / min(H, W)) + 1e-8
