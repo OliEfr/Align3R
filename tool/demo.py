@@ -193,7 +193,7 @@ def get_reconstructed_scene_hierachical(args, outdir, model, device, silent, ima
         scenegraph_type = scenegraph_type + "-" + str(winsize) + "-noncyclic"
     elif scenegraph_type == "oneref":
         scenegraph_type = scenegraph_type + "-" + str(refid)
-    clip_size = 5
+    clip_size = 10
 
     while len(imgs) % clip_size == 1 or len(imgs) % clip_size == 0 or clip_size>len(imgs):
         clip_size -= 1
@@ -293,7 +293,7 @@ def get_reconstructed_scene_hierachical1(args, outdir, model, device, silent, im
         scenegraph_type = scenegraph_type + "-" + str(winsize) + "-noncyclic"
     elif scenegraph_type == "oneref":
         scenegraph_type = scenegraph_type + "-" + str(refid)
-    clip_size = 5
+    clip_size = 10
 
     while len(imgs) % clip_size == 1 or len(imgs) % clip_size == 0 or clip_size>len(imgs):
         clip_size -= 1
