@@ -316,12 +316,13 @@ class BasePCOptimizer (nn.Module):
         
         return aligned_poses
 
-    def get_tum_poses(self, init_keypose):
+    def get_tum_poses(self, init_keypose=None):
         poses = self.get_im_poses()
         #relative_pose = poses[0]@init_keypose.T
         #print(poses.shape)
         #print(np.array(init_keypose).shape)
-        poses = self.align_poses(np.array(init_keypose), to_numpy(poses))
+        if init_keypose is not None:
+            poses = self.align_poses(np.array(init_keypose), to_numpy(poses))
         tt = np.arange(len(poses)).astype(float)
         tum_poses = [c2w_to_tumpose(p) for p in poses]
         #print(tum_poses[0].shape)
@@ -336,7 +337,8 @@ class BasePCOptimizer (nn.Module):
     def save_focals(self, path):
         # convert focal to txt
         focals = self.get_focals()
-        np.savetxt(path, focals.detach().cpu().numpy(), fmt='%.6f')
+        with open(path, 'a') as f:  
+          np.savetxt(path, focals.detach().cpu().numpy(), fmt='%.6f')
         return focals
 
     def save_intrinsics(self, path):

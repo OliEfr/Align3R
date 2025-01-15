@@ -9,6 +9,7 @@ import croco.utils.misc as misc
 import torch.distributed as dist
 from tqdm import tqdm
 from dust3r.model import AsymmetricCroCo3DStereo
+from dust3r.utils.device import to_numpy
 from dust3r.cloud_opt_flow import global_aligner, GlobalAlignerMode
 from dust3r.utils.image_pose  import load_images, rgb, enlarge_seg_masks
 from dust3r.image_pairs import make_pairs
@@ -331,11 +332,12 @@ def eval_pose_estimation_dist_h(args, model, device, img_path, save_dir=None, ma
     rpe_rot_list = []
     valid_seq = []
     load_img_size = 512
-    clip_size = 20
     args.flow_loss_thre=40
     error_log_path = f'{save_dir}/_error_log_{rank}.txt'  # Unique log file per process
     bug = False
     for seq in tqdm(seq_list):
+        clip_size = 10
+      #if seq in ['temple_3']:
         try:
             dir_path = metadata['dir_path_func'](img_path, seq)
             print(dir_path)
@@ -366,6 +368,7 @@ def eval_pose_estimation_dist_h(args, model, device, img_path, save_dir=None, ma
             pairs = make_pairs(
                 imgs, scene_graph=scene_graph_type, prefilter=None, symmetrize=True
             ) 
+            print(len(imgs))
             while len(imgs) % clip_size == 1 or len(imgs) % clip_size == 0 or clip_size>len(imgs):
               clip_size -= 1
             coarse_init_pairs, keyframes_id, all_clips_pairs, all_clips_id = my_make_pairs(imgs, clip_size)
@@ -453,6 +456,9 @@ def eval_pose_estimation_dist_h(args, model, device, img_path, save_dir=None, ma
                     pred_traj = scene_clip.get_tum_poses(init_keypose)
                     pred_traj_all[0] = np.concatenate([pred_traj_all[0], pred_traj[0]],axis=0)
                     pred_traj_all[1] = np.concatenate([pred_traj_all[1], pred_traj[1] + offset],axis=0)
+                    save_trajectory_tum_format(pred_traj_all, f'{save_dir}/{seq}/pred_traj.txt')
+                    scene_clip.save_focals(f'{save_dir}/{seq}/pred_focal.txt')
+                    scene_clip.save_intrinsics(f'{save_dir}/{seq}/pred_intrinsics.txt')
                     scene_clip.save_depth_maps(f'{save_dir}/{seq}', offset)
                     scene_clip.save_dynamic_masks(f'{save_dir}/{seq}',offset)
                     scene_clip.save_conf_maps(f'{save_dir}/{seq}',offset)
@@ -476,12 +482,12 @@ def eval_pose_estimation_dist_h(args, model, device, img_path, save_dir=None, ma
                 gt_traj = None
             #gt_traj =None
             if gt_traj is not None:
-                #print(gt_traj[0])
+                print(start,interval)
                 ate, rpe_trans, rpe_rot = eval_metrics(
-                    pred_traj_all, gt_traj, seq=seq, filename=f'{save_dir}/{seq}_eval_metric.txt'
+                    pred_traj_all, (gt_traj[0][start:interval], pred_traj_all[1]), seq=seq, filename=f'{save_dir}/{seq}_eval_metric.txt'
                 )
                 plot_trajectory(
-                    pred_traj_all, gt_traj, title=seq, filename=f'{save_dir}/{seq}.png'
+                    pred_traj_all, (gt_traj[0][start:interval], pred_traj_all[1]), title=seq, filename=f'{save_dir}/{seq}.png'
                 )
             else:
                 ate, rpe_trans, rpe_rot = 0, 0, 0
