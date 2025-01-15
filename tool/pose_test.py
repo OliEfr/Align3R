@@ -457,7 +457,7 @@ def eval_pose_estimation_dist_h(args, model, device, img_path, save_dir=None, ma
                     pred_traj_all[0] = np.concatenate([pred_traj_all[0], pred_traj[0]],axis=0)
                     pred_traj_all[1] = np.concatenate([pred_traj_all[1], pred_traj[1] + offset],axis=0)
                     save_trajectory_tum_format(pred_traj_all, f'{save_dir}/{seq}/pred_traj.txt')
-                    scene_clip.save_focals(f'{save_dir}/{seq}/pred_focal.txt')
+                    # scene_clip.save_focals(f'{save_dir}/{seq}/pred_focal.txt')
                     scene_clip.save_intrinsics(f'{save_dir}/{seq}/pred_intrinsics.txt')
                     scene_clip.save_depth_maps(f'{save_dir}/{seq}', offset)
                     scene_clip.save_dynamic_masks(f'{save_dir}/{seq}',offset)
