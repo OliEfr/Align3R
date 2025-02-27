@@ -1,4 +1,4 @@
-## ___***Align3R: Aligned Monocular Depth Estimation for Dynamic Videos***___
+## ___***[CVPR2025] Align3R: Aligned Monocular Depth Estimation for Dynamic Videos***___
 
 
 ![Version](https://img.shields.io/badge/version-1.0.1-blue) &nbsp;
