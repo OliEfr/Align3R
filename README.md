@@ -268,7 +268,7 @@ If you find our work useful, please cite:
 
 ```bibtex
 @article{lu2024align3r,
-  title={Align3R: Aligned Monocular Depth Estimation for Dynamic Videos},
+  title={Align3r: Aligned monocular depth estimation for dynamic videos},
   author={Lu, Jiahao and Huang, Tianyu and Li, Peng and Dou, Zhiyang and Lin, Cheng and Cui, Zhiming and Dong, Zhen and Yeung, Sai-Kit and Wang, Wenping and Liu, Yuan},
   journal={arXiv preprint arXiv:2412.03079},
   year={2024}
