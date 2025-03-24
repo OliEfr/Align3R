@@ -1,6 +1,6 @@
 # Copyright (C) 2024-present Naver Corporation. All rights reserved.
 # Licensed under CC BY-NC-SA 4.0 (non-commercial use only).
-#
+
 # --------------------------------------------------------
 # utilitary functions about images (loading/converting...)
 # --------------------------------------------------------
@@ -270,6 +270,7 @@ def load_images(folder_or_list, size, square_ok=False, verbose=True, dynamic_mas
     supported_video_extensions = tuple(supported_video_extensions)
 
     imgs = []
+    imgs_raw = []
     # Sort items by their names
     #start = 0
     folder_content = sorted(folder_content, key=lambda x: x.split('/')[-1])[start : start + interval]
@@ -279,15 +280,19 @@ def load_images(folder_or_list, size, square_ok=False, verbose=True, dynamic_mas
         if path.lower().endswith(supported_images_extensions):
             # Process image files
             img = exif_transpose(PIL.Image.open(full_path)).convert('RGB')
-
+            imgs_raw.append(img)
             if traj_format == 'sintel':
-              pred_depth = np.load(full_path.replace('final','depth_prediction_' + depth_prior_name).replace('.png', '.npz'))
+              pred_depth = np.load(full_path.replace('clean','depth_prediction_' + depth_prior_name).replace('.png', '.npz'))
             elif traj_format in ["tum", "tartanair"]:
               pred_depth = np.load(full_path.replace('rgb_50','rgb_50_depth_prediction_' + depth_prior_name).replace('.png', '.npz'))
             elif traj_format in ["bonn"]:
                 pred_depth = np.load(full_path.replace('rgb_110','rgb_110_depth_prediction_' + depth_prior_name).replace('.png', '.npz'))
             elif traj_format in ["davis"]:
                 pred_depth = np.load(full_path.replace('JPEGImages','depth_prediction_' + depth_prior_name).replace('.jpg', '.npz').replace('480p', '1080p'))
+            elif traj_format in ["scannet"]:
+                pred_depth = np.load(full_path.replace('color_30','color_90_depth_prediction_' + depth_prior_name).replace('.jpg', '.npz').replace('.png', '.npz'))
+            elif traj_format in ["kitti"]:
+                pred_depth = np.load(full_path.replace('image_gathered','depth_prediction_' + depth_prior_name).replace('.jpg', '.npz').replace('.png', '.npz'))
             else:
                 pred_depth = np.load(full_path.replace('.png','_pred_depth_' + depth_prior_name + '.npz').replace('.jpg','_pred_depth_' + depth_prior_name + '.npz'), allow_pickle=True)
             #print(pred_depth)
@@ -399,7 +404,7 @@ def load_images(folder_or_list, size, square_ok=False, verbose=True, dynamic_mas
     assert imgs, 'No images found at ' + root
     if verbose:
         print(f' (Found {len(imgs)} images)')
-    return imgs
+    return imgs, imgs_raw
 
 def enlarge_seg_masks(folder, kernel_size=5, prefix="dynamic_mask"):
     mask_pathes = glob.glob(f'{folder}/{prefix}_*.png')

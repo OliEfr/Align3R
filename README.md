@@ -1,7 +1,7 @@
 ## ___***[CVPR2025] Align3R: Aligned Monocular Depth Estimation for Dynamic Videos***___
 
 
-![Version](https://img.shields.io/badge/version-1.0.1-blue) &nbsp;
+![Version](https://img.shields.io/badge/version-1.0.2-blue) &nbsp;
  <a href='https://arxiv.org/abs/2412.03079'><img src='https://img.shields.io/badge/arXiv-2412.03079-b31b1b.svg'></a> &nbsp;
  <a href='https://igl-hkust.github.io/Align3R.github.io/'><img src='https://img.shields.io/badge/Project-Page-Green'></a> &nbsp;
  [![CC BY-NC-SA 4.0][cc-by-nc-sa-shield]][cc-by-nc-sa] &nbsp;
@@ -28,6 +28,16 @@ Arxiv, 2024.
 
 **Align3R** estimates temporally consistent video depth, dynamic point clouds, and camera poses from monocular videos.
 [![Watch the video](assets/teaser_00.jpg)](https://igl-hkust.github.io/Align3R.github.io/static/video/converted/Align3R_video.mp4)
+
+
+## 🔨TODO List:
+- [✔] Incorporate PromptDA to restore original resolution and achieve better details.
+- [ ] Add more real dataset for training.
+- [ ] Add camera pose and point correspondence prediction.
+
+
+
+
 
 ## 🚀 Quick Start
 
@@ -177,6 +187,13 @@ bash train.sh
 You can run the following demo code on any video. The input path can be either a mp4 video or an image folder.
 ```bash
 bash demo.sh
+```
+
+To produce results with the original resolution and enhanced details, you can try the following demo, which leverages [PromptDA](https://github.com/DepthAnything/PromptDA) for depth map upsampling and refinement. 
+
+To get started, first install [PromptDA](https://github.com/DepthAnything/PromptDA) by following their provided instructions, then proceed to run the demo below.
+```bash
+bash demo_refine.sh
 ```
 ### 🎇 Evaluation 
 #### Video Depth

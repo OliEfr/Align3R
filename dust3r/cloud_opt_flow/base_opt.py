@@ -387,19 +387,32 @@ class BasePCOptimizer (nn.Module):
             cv2.imwrite(f'{path}/dynamic_mask_{start+i}.png', (dynamic_mask * 255).detach().cpu().numpy().astype(np.uint8))
         return dynamic_masks
 
-    def save_depth_maps(self, path, start):
-        depth_maps = self.get_depthmaps()
+    def save_depth_maps(self, path, start, depth_maps_init=None):
+        if depth_maps_init is None:
+          depth_maps = [i.detach().cpu().numpy() for i in self.get_depthmaps()]
+        else:
+          depth_maps = depth_maps_init
         images = []
         
         for i, depth_map in enumerate(depth_maps):
             # Apply color map to depth map
-            depth_map_colored = cv2.applyColorMap((depth_map * 255).detach().cpu().numpy().astype(np.uint8), cv2.COLORMAP_JET)
-            img_path = f'{path}/frame_{(start+i):04d}.png'
+            
+            depth_map_colored = cv2.applyColorMap((depth_map * 255).astype(np.uint8), cv2.COLORMAP_JET)
+            if depth_maps_init is None:
+              img_path = f'{path}/frame_{(start+i):04d}.png'
+            else:
+              img_path = f'{path}/frame_refine_{(start+i):04d}.png'
             cv2.imwrite(img_path, depth_map_colored)
             images.append(Image.open(img_path))
-            np.save(f'{path}/frame_{(start+i):04d}.npy', depth_map.detach().cpu().numpy())
+            if depth_maps_init is None:
+              np.save(f'{path}/frame_{(start+i):04d}.npy', depth_map)
+            else:
+              np.save(f'{path}/frame_refine_{(start+i):04d}.npy', depth_map)
 
-        gif_path = os.path.join(path, '_depth_maps.gif')
+        if depth_maps_init is None:
+          gif_path = os.path.join(path, '_depth_maps.gif')
+        else:
+          gif_path = os.path.join(path, '_depth_maps_refine.gif')
         if os.path.exists(gif_path):
             existing_gif = Image.open(gif_path)
             existing_frames = [frame.copy() for frame in ImageSequence.Iterator(existing_gif)]

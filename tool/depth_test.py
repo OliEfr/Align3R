@@ -30,9 +30,10 @@ from dust3r.cloud_opt import global_aligner, GlobalAlignerMode
 from scipy.optimize import minimize
 from dust3r.model import AsymmetricCroCo3DStereo
 # from dust3r.demo import get_args_parser, main_demo, set_print_with_timestamp
-
+from promptda.promptda import PromptDA
 import matplotlib.pyplot as pl
 import matplotlib
+import torch.nn.functional as F
 pl.ion()
 
 torch.backends.cuda.matmul.allow_tf32 = True  # for gpu >= Ampere and pytorch >= 1.12
@@ -55,7 +56,7 @@ def get_args_parser():
                         help="align with lad2")
     parser.add_argument("--align_with_scale", action='store_true', default=False,
                         help="align with scale")
-    parser.add_argument("--eval", action='store_true', default=False,
+    parser.add_argument("--eval", action='store_true', default=True,
                         help="eval or not")
     parser.add_argument("--depth_prior", action='store_true', default=False,
                         help="eval the monocular depth maps")
@@ -67,7 +68,7 @@ def get_args_parser():
                         help="depth_max")
     parser.add_argument("--output_postfix", type=str, default=None,
                         help="output archieve")
-    parser.add_argument("--dataset_name", type=str, default=None, choices=['bonn', 'tum', 'davis', 'sintel', 'PointOdyssey', 'FlyingThings3D'], help="choose dataset for depth evaluation")
+    parser.add_argument("--dataset_name", type=str, default='sintel', choices=['bonn', 'tum', 'davis', 'sintel', 'PointOdyssey', 'FlyingThings3D'], help="choose dataset for depth evaluation")
     parser.add_argument("--depth_prior_name", type=str, default='depthpro', choices=['depthpro', 'depthanything'], help="the name of monocular depth estimation model")
     parser.add_argument("--crop", action='store_true', default=False,
                         help="crop or not")
@@ -261,6 +262,7 @@ def load_images_my(fileforder, if_depth_prior, size, square_ok=False, verbose=Tr
 
     imgs = []
     rgb_imgs = []
+    rgb_imgs_raw = []
     depth_list = []
     depth_prior = []
     i = 0
@@ -270,9 +272,10 @@ def load_images_my(fileforder, if_depth_prior, size, square_ok=False, verbose=Tr
             continue
         if i<110:
           img = exif_transpose(PIL.Image.open(os.path.join(root, path))).convert('RGB')
+          rgb_imgs_raw.append(img)
           if depth_prior_name == 'depthanything':
             if dataset_name == 'sintel':
-              pred_depth = np.load(os.path.join(root, path).replace('final','depth_prediction_depthanything').replace('.png', '.npz'))
+              pred_depth = np.load(os.path.join(root, path).replace('clean','depth_prediction_depthanything').replace('.png', '.npz'))
               focal_length_px = 200
               pred_depth1 = pred_depth['depth']
             elif dataset_name == 'davis':
@@ -294,7 +297,7 @@ def load_images_my(fileforder, if_depth_prior, size, square_ok=False, verbose=Tr
 
           elif depth_prior_name == 'depthpro':
             if dataset_name == 'sintel':
-              pred_depth = np.load(os.path.join(root, path).replace('final','depth_prediction_depthpro').replace('.png', '.npz'))
+              pred_depth = np.load(os.path.join(root, path).replace('clean','depth_prediction_depthpro').replace('.png', '.npz'))
               focal_length_px = pred_depth['focallength_px']
               pred_depth1 = pred_depth['depth']
             elif dataset_name == 'davis':
@@ -323,7 +326,7 @@ def load_images_my(fileforder, if_depth_prior, size, square_ok=False, verbose=Tr
             pred_depth = pred_depth1
 
           if dataset_name == 'sintel':
-            depth = depth_read(os.path.join(root, path).replace('MPI-Sintel-training_images', 'MPI-Sintel-depth-training').replace('final/','depth/').replace('.png','.dpt'))
+            depth = depth_read(os.path.join(root, path).replace('MPI-Sintel-training_images', 'MPI-Sintel-depth-training').replace('clean/','depth/').replace('.png','.dpt'))
           elif dataset_name == 'davis':
             depth = pred_depth1
           elif dataset_name == 'bonn':
@@ -379,7 +382,7 @@ def load_images_my(fileforder, if_depth_prior, size, square_ok=False, verbose=Tr
     if verbose:
         print(f' (Found {len(imgs)} images)')
 
-    return imgs, rgb_imgs, depth_list, depth_prior
+    return imgs, rgb_imgs, rgb_imgs_raw, depth_list, depth_prior
 
 def find_images(directory):
     image_paths = []
@@ -524,6 +527,27 @@ def absolute_value_scaling2(predicted_depth, ground_truth_depth, s_init=1.0, t_i
 
     return s.detach().item(), t.detach().item()
 
+def to_tensor_func(arr):
+    if arr.ndim == 2:
+        arr = arr[:, :, np.newaxis]
+    return torch.from_numpy(arr).permute(2, 0, 1).unsqueeze(0)
+
+def rescale_depth_maps(promptda, depthmaps, imgs, confs_all=None, depth_prior=None, start=0):
+    depth_map_refine = []
+    W, H = imgs[0].size
+    new_width = round(W / 14) * 14
+    new_height = round(H * (new_width / W) / 14) * 14
+    for i in range(len(imgs)):
+      image_i = to_tensor_func(np.array(imgs[i].resize((new_width, new_height), PIL.Image.BICUBIC))/255.).cuda().float()
+      prompt_depth_i = to_tensor_func(depthmaps[i]).cuda().float()
+      #conf_i = confs_all[i]
+      #depth_prior_i = to_tensor_func(depth_prior[i]).cuda().float()
+      #prompt_depth_i[0,0][conf_i<1] = depth_prior_i[0,0][conf_i<1]
+      depth_map = promptda.predict(image_i, prompt_depth_i)
+      depth_map = F.interpolate(depth_map, size=(H, W), mode='bilinear', align_corners=False)
+      depth_map_refine.append(depth_map[0].cpu().numpy())
+    return depth_map_refine
+
 if __name__ == "__main__":
 
     parser = get_args_parser()
@@ -542,7 +566,7 @@ if __name__ == "__main__":
     clean_depth = True
 
     # hyper parameter
-    clip_size = 20                  # clip size
+    clip_size = 50                  # clip size
     complete_graph = False
     min_conf_thr = 3.0
     if_use_mono = False              # to adjust whether use the monodepth as initialization
@@ -566,7 +590,7 @@ if __name__ == "__main__":
       directories = [os.path.join(path, entry) for entry in entries if os.path.isdir(os.path.join(path, entry))]
       directories = sorted(get_bottom_level_directories(path))
     elif dataset_name == 'sintel':
-      path = './data/MPI-Sintel/MPI-Sintel-training_images/training/final/'
+      path = './data/sintel/training/clean'
       entries = os.listdir(path)
       directories = [os.path.join(path, entry) for entry in entries if os.path.isdir(os.path.join(path, entry))]
       directories = sorted(get_bottom_level_directories(path))
@@ -587,16 +611,20 @@ if __name__ == "__main__":
     align_with_lad2 = args.align_with_lad2
     align_with_scale = args.align_with_scale
     gathered_depth_metrics = []
+
+    promptda = PromptDA.from_pretrained("depth-anything/promptda_vitl").cuda().eval()
     for folder in tqdm(directories):
+        clip_size = 50  
         seq = folder.split('/')[-1]
         print(seq)
         if dataset_name == 'bonn':
           folder = os.path.join(folder, 'rgb_110')
         elif dataset_name == 'tum':
           folder = os.path.join(folder, 'rgb_50')
-        imgs, imgs_rgb, depth_list, depth_prior = load_images_my(folder, args.depth_prior, size=image_size, verbose=not silent, crop=args.crop, depth_prior_name=args.depth_prior_name, dataset_name=dataset_name)
+        imgs, imgs_rgb, rgb_imgs_raw, depth_list, depth_prior = load_images_my(folder, args.depth_prior, size=image_size, verbose=not silent, crop=args.crop, depth_prior_name=args.depth_prior_name, dataset_name=dataset_name)
         root, folder_content = folder, find_images(folder)
-        
+        #mask = depth_list[0]<70
+        #cv2.imwrite('mask.png', mask*255)
         while len(imgs) % clip_size == 1 or len(imgs) % clip_size == 0 or clip_size>len(imgs):
           clip_size -= 1
         if not args.depth_prior:
@@ -623,6 +651,7 @@ if __name__ == "__main__":
 
           depth_imgs = []
           depth_gray = []
+          confs_all = []
           # clip-wise inference and optimization
           for init_keypose, init_keydepth, init_keyfocal, clip_pair in zip(init_keyposes, init_keydepths, init_keyfocals, all_clips_pairs):
               clipwise_output = inference(clip_pair, dust3r_model, args.device, batch_size=1, verbose=not silent)
@@ -639,11 +668,12 @@ if __name__ == "__main__":
                 loss = scene_clip_i.compute_global_alignment(init='mst', init_priors = init_priors, niter=niter, schedule=schedule, lr=lr)
 
                 depths = to_numpy(scene_clip_i.get_depthmaps())
-                
+                confs = to_numpy(scene_clip_i.get_conf())
                 for i in range(len(depths)):
                     depth_map_colored = cv2.applyColorMap((depths[i] * 255).astype(np.uint8), cv2.COLORMAP_JET)
                     depth_imgs.append(depth_map_colored)
                     depth_gray.append(depths[i])
+                    confs_all.append(confs[i])
 
         if args.vis_img:
           if not os.path.exists(args.output_postfix+'/'+seq):
@@ -657,7 +687,8 @@ if __name__ == "__main__":
         if args.eval or args.vis_img_align:
           depth_gt = [i[None,...] for i in depth_list]
           depth_gt = np.concatenate(depth_gt)
-          depth_pred = [cv2.resize(i, (depth_list[0].shape[1], depth_list[0].shape[0]))[None,...] for i in depth_gray]if not args.depth_prior else [cv2.resize(i, (depth_list[0].shape[1], depth_list[0].shape[0]))[None,...] for i in depth_prior]
+          depth_pred = rescale_depth_maps(promptda, depth_gray, rgb_imgs_raw, confs_all, depth_prior)
+          #depth_pred = [cv2.resize(i, (depth_list[0].shape[1], depth_list[0].shape[0]))[None,...] for i in depth_gray]if not args.depth_prior else [cv2.resize(i, (depth_list[0].shape[1], depth_list[0].shape[0]))[None,...] for i in depth_prior]
           depth_pred = np.concatenate(depth_pred)
 
           # clip the depth

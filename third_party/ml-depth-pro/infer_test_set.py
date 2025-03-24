@@ -33,17 +33,22 @@ if args.dataset_name == "bonn":
 elif args.dataset_name == "davis":
   dir = '../../data/davis/DAVIS/JPEGImages/480p/'
 elif args.dataset_name == "sintel":
-  dir = '../../data/MPI-Sintel/MPI-Sintel-training_images/training/final/'
+  dir = '../../data/sintel/training/clean/'
 elif args.dataset_name == "tum":
   dir = '../../data/tum/' 
-
-for scene in tqdm(sorted(os.listdir(dir))):
+elif args.dataset_name == "scannetv2":
+  dir = '../../data/scannetv2/' 
+elif args.dataset_name == "kitti":
+  dir = '../../data/kitti/depth_selection/val_selection_cropped/image_gathered/' 
+for scene in tqdm(sorted(os.listdir(dir))[:5]):
   data_dir = dir + scene
   if os.path.isdir(data_dir):
     if args.dataset_name == "bonn":
       data_dir = data_dir + '/rgb_110'
     elif args.dataset_name == "tum":
       data_dir = data_dir + '/rgb_50'
+    elif args.dataset_name == "scannetv2":
+      data_dir = data_dir + '/color_90'
     for image_path in tqdm(sorted(os.listdir(data_dir))[int(args.a):int(args.b)]):
       #print(image_path)
       if image_path.split('.')[-1]=='jpg' or image_path.split('.')[-1]=='png': 
@@ -79,7 +84,20 @@ for scene in tqdm(sorted(os.listdir(dir))):
             os.makedirs(data_dir.replace('JPEGImages', 'depth_prediction_depthpro'))
           path_depthanything = os.path.join(data_dir, image_path).replace('JPEGImages', 'depth_prediction_depthanything').replace('.jpg', '.npz').replace('.png', '.npz')
           path_depthpro = os.path.join(data_dir, image_path).replace('JPEGImages', 'depth_prediction_depthpro').replace('.jpg', '.npz').replace('.png', '.npz')
-      
+        elif args.dataset_name == "scannetv2":
+          if not os.path.exists(data_dir.replace('color_90', 'color_90_depth_prediction_depthanything')):
+              os.makedirs(data_dir.replace('color_90', 'color_90_depth_prediction_depthanything'))
+          if not os.path.exists(data_dir.replace('color_90', 'color_90_depth_prediction_depthpro')):
+            os.makedirs(data_dir.replace('color_90', 'color_90_depth_prediction_depthpro'))
+          path_depthanything = os.path.join(data_dir, image_path).replace('color_90', 'color_90_depth_prediction_depthanything').replace('.jpg', '.npz').replace('.png', '.npz')
+          path_depthpro = os.path.join(data_dir, image_path).replace('color_90', 'color_90_depth_prediction_depthpro').replace('.jpg', '.npz').replace('.png', '.npz')
+        elif args.dataset_name == "kitti":
+          if not os.path.exists(data_dir.replace('image_gathered', 'depth_prediction_depthanything')):
+              os.makedirs(data_dir.replace('image_gathered', 'depth_prediction_depthanything'))
+          if not os.path.exists(data_dir.replace('image_gathered', 'depth_prediction_depthpro')):
+            os.makedirs(data_dir.replace('image_gathered', 'depth_prediction_depthpro'))
+          path_depthanything = os.path.join(data_dir, image_path).replace('image_gathered', 'depth_prediction_depthanything').replace('.jpg', '.npz').replace('.png', '.npz')
+          path_depthpro = os.path.join(data_dir, image_path).replace('image_gathered', 'depth_prediction_depthpro').replace('.jpg', '.npz').replace('.png', '.npz')
         np.savez_compressed(path_depthanything, depth=depth)  
         # depthpro
         image, _, f_px = depth_pro.load_rgb(os.path.join(data_dir, image_path))
