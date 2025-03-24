@@ -40,8 +40,8 @@ Arxiv, 2024.
 
 
 ## 🚀 Quick Start
+<details> <summary> 🛠️ Installation </summary>
 
-### 🛠️ Installation
 1. Clone this repo:
 ```bash
 git clone git@github.com:jiah-cloud/Align3R.git
@@ -94,9 +94,10 @@ source get_pretrained_models.sh
 # Raft
 gdown --fuzzy https://drive.google.com/file/d/1KJxQ7KPuGHlSftsBCV1h2aYpeqQv3OI-/view?usp=drive_link -O models/
 ```
+</details>
 
+<details> <summary> 🔧 Dataset Preparation </summary>
 
-### 🔧 Dataset Preparation
 To train Align3R, you should download the following dataset:
 
 * [SceneFlow](https://lmb.informatik.uni-freiburg.de/resources/datasets/SceneFlowDatasets.en.html) (Includes FlyingThings3D, Driving & Monkaa)
@@ -178,16 +179,15 @@ To generate monocular depth maps, you should use the following script:
 cd third_party/ml-depth-pro
 bash infer.sh
 ```
-### 🌟 Training
-Please download the pretrained DUSt3R [weight](https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth) before training.
-```bash
-bash train.sh
-```
-### 🎇 Demo
+</details>
+
+<details> <summary> 🎇 Demo </summary>
+
 You can run the following demo code on any video. The input path can be either a mp4 video or an image folder.
 ```bash
 bash demo.sh
 ```
+![Demo GIF](assets/_depth_maps.gif) 
 
 To produce results with the original resolution and enhanced details, you can try the following demo, which leverages [PromptDA](https://github.com/DepthAnything/PromptDA) for depth map upsampling and refinement. 
 
@@ -195,7 +195,31 @@ To get started, first install [PromptDA](https://github.com/DepthAnything/Prompt
 ```bash
 bash demo_refine.sh
 ```
-### 🎇 Evaluation 
+
+
+![Refined Demo GIF](assets/_depth_maps_refine.gif)
+
+</details>
+
+<details> <summary> 🎥 Visualization </summary>
+
+Please use the `viser` to visualize the point cloud results, you can acquire the code from [MonST3R](https://github.com/Junyi42/viser.git). Thanks for their excellent work!
+```bash
+python viser/visualizer_monst3r.py --data path/dataset/video --init_conf --fg_conf_thre 1.0  --no_mask --wxyz
+```
+
+</details>
+
+<details> <summary> 🌟 Training </summary>
+
+Please download the pretrained DUSt3R [weight](https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth) before training.
+```bash
+bash train.sh
+```
+</details>
+
+<details> <summary> 🎇 Evaluation </summary>
+
 #### Video Depth
 ```bash
 bash depth_test.sh
@@ -273,12 +297,9 @@ CUDA_VISIBLE_DEVICES='0' python tool/pose_test.py --dust3r_dynamic_model_path="a
 # Depth Anything V2
 CUDA_VISIBLE_DEVICES='0' python tool/pose_test.py --dust3r_dynamic_model_path="align3r_depthanything.pth" --output_postfix="results/tum_pose_ours_depthanything" --dataset_name=tum --depth_prior_name=depthanything --start_frame=0 --interval_frame=30 --mode=eval_pose --scene_graph_type=swin-5-noncyclic
 ```
+</details>
 
-### 🎥 Visualization
-Please use the `viser` to visualize the point cloud results, you can acquire the code from [MonST3R](https://github.com/Junyi42/viser.git). Thanks for their excellent work!
-```bash
-python viser/visualizer_monst3r.py --data path/dataset/video --init_conf --fg_conf_thre 1.0  --no_mask --wxyz
-```
+
 ### 📜 Citation
 
 If you find our work useful, please cite:
