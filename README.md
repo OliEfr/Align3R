@@ -31,7 +31,8 @@ Arxiv, 2024.
 
 
 ## 🔨TODO List:
-- [✔] Incorporate PromptDA to restore original resolution and achieve better details.
+- [x] Incorporate PromptDA to restore original resolution and achieve better details.
+- [] Add evaluation for static scenes.
 - [ ] Add more real dataset for training.
 - [ ] Add camera pose and point correspondence prediction.
 
