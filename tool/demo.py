@@ -132,7 +132,7 @@ def get_reconstructed_scene(args, outdir, model, device, silent, image_size, fil
 
     generate_monocular_depth_maps(filelist, depth_prior_name)
 
-    imgs = load_images(filelist, size=image_size, verbose=not silent, fps=fps, start=0, interval=interval, traj_format='custom', depth_prior_name=depth_prior_name)
+    imgs, _ = load_images(filelist, size=image_size, verbose=not silent, fps=fps, start=0, interval=interval, traj_format='custom', depth_prior_name=depth_prior_name)
     if len(imgs) == 1:
         imgs = [imgs[0], copy.deepcopy(imgs[0])]
         imgs[1]['idx'] = 1
@@ -185,7 +185,7 @@ def get_reconstructed_scene_hierachical(args, outdir, model, device, silent, ima
 
     generate_monocular_depth_maps(filelist, depth_prior_name)
 
-    imgs = load_images(filelist, size=image_size, verbose=not silent, fps=fps, start=0, interval=interval, traj_format='custom', depth_prior_name=depth_prior_name)
+    imgs, _ = load_images(filelist, size=image_size, verbose=not silent, fps=fps, start=0, interval=interval, traj_format='custom', depth_prior_name=depth_prior_name)
     if len(imgs) == 1:
         imgs = [imgs[0], copy.deepcopy(imgs[0])]
         imgs[1]['idx'] = 1
@@ -285,7 +285,7 @@ def get_reconstructed_scene_hierachical1(args, outdir, model, device, silent, im
 
     generate_monocular_depth_maps(filelist, depth_prior_name)
 
-    imgs = load_images(filelist, size=image_size, verbose=not silent, fps=fps, start=0, interval=interval, traj_format='custom', depth_prior_name=depth_prior_name)
+    imgs, _ = load_images(filelist, size=image_size, verbose=not silent, fps=fps, start=0, interval=interval, traj_format='custom', depth_prior_name=depth_prior_name)
     if len(imgs) == 1:
         imgs = [imgs[0], copy.deepcopy(imgs[0])]
         imgs[1]['idx'] = 1
