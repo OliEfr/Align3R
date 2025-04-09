@@ -1,0 +1,84 @@
+FROM nvcr.io/nvidia/cuda:12.1.0-cudnn8-devel-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Python 3.11 and other necessary dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    curl \
+    python3.11 \
+    python3.11-dev \
+    python3.11-distutils \
+    python3-pip \
+    python3.11-venv \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    git \
+    unzip \
+    tar \
+    htop \
+    qt5-qmake \
+    qtbase5-dev \
+    xvfb \
+    ffmpeg \
+    python3-tk \ 
+    ninja-build \
+    && rm -rf /var/lib/apt/lists/* && apt-get clean
+
+# Set Python 3.11 as the default python version
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1 && \
+    update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
+
+# Create and activate a virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+RUN echo 'source /opt/venv/bin/activate' >> ~/.bashrc
+
+# Nvidia env vars
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
+
+# Add user and set as default
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=1000
+
+RUN groupadd --gid ${USER_GID} ${USERNAME} && \
+    useradd --uid ${USER_UID} --gid ${USER_GID} -m ${USERNAME}
+
+# Fix permissions for pip installations
+RUN mkdir -p /opt/venv/lib/python3.11/site-packages && \
+    chown -R ${USERNAME}:${USERNAME} /opt/venv
+
+# Switch to non-root user
+USER ${USERNAME}
+WORKDIR /home/${USERNAME}
+
+# Install PyTorch and dependencies
+RUN pip install torch==2.5.0 torchvision==0.20.0 torchaudio==2.5.0 --index-url https://download.pytorch.org/whl/cu121
+
+# Copy requirements and install
+COPY --chown=${USERNAME}:${USERNAME} . .
+RUN pip install -r requirements.txt
+RUN pip install -r requirements_optional.txt
+
+ENV TORCH_CUDA_ARCH_LIST="8.9"
+RUN cd croco/models/curope/ && \
+    python setup.py build_ext --inplace && \
+    cd ../../../
+
+RUN cd third_party/ml-depth-pro && \
+    pip install -e . && \
+    mkdir -p checkpoints && \
+    wget https://ml-site.cdn-apple.com/models/depth-pro/depth_pro.pt -P checkpoints && \
+    pip install transformers==4.41.2
+
+RUN wget https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth
+RUN gdown --fuzzy https://drive.google.com/file/d/1-qhRtgH7rcJMYZ5sWRdkrc2_9wsR1BBG/view?usp=sharing
+RUN gdown --fuzzy https://drive.google.com/file/d/1PPmpbASVbFdjXnD3iea-MRIHGmKsS8Vh/view?usp=sharing
+
+
+RUN gdown --fuzzy https://drive.google.com/file/d/1KJxQ7KPuGHlSftsBCV1h2aYpeqQv3OI-/view?usp=drive_link -O models/
+
+
