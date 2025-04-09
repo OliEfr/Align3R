@@ -59,29 +59,33 @@ WORKDIR /home/${USERNAME}
 RUN pip install torch==2.5.0 torchvision==0.20.0 torchaudio==2.5.0 --index-url https://download.pytorch.org/whl/cu121
 
 # Copy requirements and install
-COPY --chown=${USERNAME}:${USERNAME} . .
+COPY --chown=${USERNAME}:${USERNAME} requirements.txt .
+COPY --chown=${USERNAME}:${USERNAME} requirements_optional.txt .
 RUN pip install -r requirements.txt
 RUN pip install -r requirements_optional.txt
 
+COPY --chown=${USERNAME}:${USERNAME} croco/models/curope/ ./croco/models/curope/ 
 ENV TORCH_CUDA_ARCH_LIST="8.9"
 RUN cd croco/models/curope/ && \
     python setup.py build_ext --inplace && \
     cd ../../../
 
+COPY --chown=${USERNAME}:${USERNAME} third_party/ml-depth-pro ./third_party/ml-depth-pro
 RUN cd third_party/ml-depth-pro && \
     pip install -e . && \
     pip install transformers==4.41.2
 
-
-
-
-
-# TODO install sam2
+COPY --chown=${USERNAME}:${USERNAME} third_party/sam2 ./third_party/sam2
 RUN cd third_party/sam2 && \
     pip install -e . && \
     cd ../../
 
-RUN pip install evo
+# run this before: git clone https://github.com/DepthAnything/PromptDA.git && cd
+COPY --chown=${USERNAME}:${USERNAME} PromptDA ./PromptDA
+RUN cd PromptDA && \
+    pip install -e .
 
-RUN git clone https://github.com/DepthAnything/PromptDA.git && cd PromptDA && \
+# run this before: git clone https://github.com/Junyi42/viser.git &&
+COPY --chown=${USERNAME}:${USERNAME} viser ./viser
+RUN cd viser && \
     pip install -e .

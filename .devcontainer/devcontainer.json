@@ -4,6 +4,7 @@
         "dockerfile": "Dockerfile",
         "context": ".."
     },
+    "initializeCommand": "bash download_deps.sh",
     "postCreateCommand": "bash download_all_models.sh",
     "customizations": {
         "vscode": {
