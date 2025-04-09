@@ -83,3 +83,5 @@ RUN cd third_party/sam2 && \
 
 RUN pip install evo
 
+RUN git clone https://github.com/DepthAnything/PromptDA.git && cd PromptDA && \
+    pip install -e .
