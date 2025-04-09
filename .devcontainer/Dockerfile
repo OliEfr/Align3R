@@ -70,16 +70,11 @@ RUN cd croco/models/curope/ && \
 
 RUN cd third_party/ml-depth-pro && \
     pip install -e . && \
-    mkdir -p checkpoints && \
-    wget https://ml-site.cdn-apple.com/models/depth-pro/depth_pro.pt -P checkpoints && \
     pip install transformers==4.41.2
 
-RUN wget https://download.europe.naverlabs.com/ComputerVision/DUSt3R/DUSt3R_ViTLarge_BaseDecoder_512_dpt.pth
-RUN gdown --fuzzy https://drive.google.com/file/d/1-qhRtgH7rcJMYZ5sWRdkrc2_9wsR1BBG/view?usp=sharing
-RUN gdown --fuzzy https://drive.google.com/file/d/1PPmpbASVbFdjXnD3iea-MRIHGmKsS8Vh/view?usp=sharing
 
 
-RUN gdown --fuzzy https://drive.google.com/file/d/1KJxQ7KPuGHlSftsBCV1h2aYpeqQv3OI-/view?usp=drive_link -O models/
+
 
 # TODO install sam2
 RUN cd third_party/sam2 && \

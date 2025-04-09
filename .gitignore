@@ -6,6 +6,12 @@
 # C extensions
 *.so
 
+*.png
+*.npy
+*.pth
+*.pt
+*.npz
+
 # Distribution / packaging
 .Python
 env/
