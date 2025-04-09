@@ -11,6 +11,8 @@
 *.pth
 *.pt
 *.npz
+*.gif
+*.zip
 
 # Distribution / packaging
 .Python
