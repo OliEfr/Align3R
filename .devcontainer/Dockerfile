@@ -81,4 +81,10 @@ RUN gdown --fuzzy https://drive.google.com/file/d/1PPmpbASVbFdjXnD3iea-MRIHGmKsS
 
 RUN gdown --fuzzy https://drive.google.com/file/d/1KJxQ7KPuGHlSftsBCV1h2aYpeqQv3OI-/view?usp=drive_link -O models/
 
+# TODO install sam2
+RUN cd third_party/sam2 && \
+    pip install -e . && \
+    cd ../../
+
+RUN pip install evo
 
